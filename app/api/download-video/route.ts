@@ -1,0 +1,54 @@
+import { NextRequest, NextResponse } from 'next/server';
+
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const url = searchParams.get('url');
+  const filename = searchParams.get('filename') || 'tryon-video.mp4';
+
+  if (!url) {
+    return NextResponse.json({ error: 'Missing url parameter' }, { status: 400 });
+  }
+
+  // Validate URL is from fal.media (security: don't allow arbitrary URL fetching)
+  let parsedUrl: URL;
+  try {
+    parsedUrl = new URL(url);
+  } catch {
+    return NextResponse.json({ error: 'Invalid URL' }, { status: 400 });
+  }
+
+  if (!parsedUrl.hostname.endsWith('fal.media')) {
+    return NextResponse.json(
+      { error: 'Only fal.media URLs are allowed' },
+      { status: 403 }
+    );
+  }
+
+  try {
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      return NextResponse.json(
+        { error: `Failed to fetch video: ${response.status}` },
+        { status: 502 }
+      );
+    }
+
+    const videoBuffer = await response.arrayBuffer();
+
+    return new NextResponse(videoBuffer, {
+      status: 200,
+      headers: {
+        'Content-Type': 'video/mp4',
+        'Content-Disposition': `attachment; filename="${filename}"`,
+        'Content-Length': videoBuffer.byteLength.toString(),
+      },
+    });
+  } catch (error) {
+    console.error('Download proxy error:', error);
+    return NextResponse.json(
+      { error: 'Failed to download video' },
+      { status: 500 }
+    );
+  }
+}

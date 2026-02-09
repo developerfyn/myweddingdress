@@ -1,0 +1,14 @@
+{
+  "name": "generate-gowns",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate": "node --import tsx generate.ts",
+    "generate:test": "node --import tsx generate.ts --test",
+    "generate:neckline": "node --import tsx generate.ts --neckline"
+  },
+  "devDependencies": {
+    "tsx": "^4.7.0"
+  }
+}

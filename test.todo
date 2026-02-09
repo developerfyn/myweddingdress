@@ -1,0 +1,35 @@
+my wedding dress:
+    ✔ catalog with real wedding dress @started(26-02-06 11:51) @done(26-02-06 14:51) @lasted(3h)
+    ✔ define free gowns and premium gowns @started(26-02-07 10:51) @done(26-02-09 14:46) @lasted(2d3h55m59s)
+    ✔ review quality of try-on result @started(26-02-07 10:51) @done(26-02-09 14:47) @lasted(2d3h56m2s)
+    ✔ implement credit system @started(26-02-09 14:47) @done(26-02-09 17:30) @lasted(2h43m56s)
+    ☐ stripe integration @started(26-02-09 17:31)
+
+    ☐ optimise for web
+    ☐ optimise for mobile
+    ☐ review completeness of this project
+    ☐ review everything to ensure we can deploy onto production smoothly
+
+
+ promote fitted ai:
+    ☐ apply new simba number @started(26-02-06 12:15)
+    ☐ create a tik tok account for fitted ai
+    ☐ create a instagram account for fitted ai
+     research the source of the gowns we have currently, where are they from?
+       
+
+
+     why do we have .env and .env.local?
+
+
+to run gown generateion
+        1. Apply the database migration:                            
+            npx supabase db push                                        
+                                                                        
+            2. Test with 10 images (1 per neckline) to verify everything
+             works:                                                     
+            npm run generate-gowns:test                                 
+                                                                        
+            3. If the test succeeds, run the full 500 image generation: 
+            npm run generate-gowns                                      
+                                                   
