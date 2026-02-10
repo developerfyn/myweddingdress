@@ -90,7 +90,7 @@ export default function LandingPage() {
           {/* Mobile Menu Button */}
           <button
             type="button"
-            className="md:hidden p-2"
+            className="md:hidden p-2 min-w-11 min-h-11 flex items-center justify-center"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Toggle menu"
           >

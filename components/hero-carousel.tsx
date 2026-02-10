@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import Image from 'next/image';
 
 const heroImages = [
@@ -18,33 +18,61 @@ const heroImages = [
 export function HeroCarousel() {
   const [rotation, setRotation] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
+  const [isTouching, setIsTouching] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const touchStartRef = useRef<{ x: number; rotation: number } | null>(null);
 
   const imageCount = heroImages.length;
   const anglePerImage = 360 / imageCount;
-  const radius = 280; // Distance from center
 
+  // Auto-rotate when not interacting
   useEffect(() => {
-    if (isHovered) return;
+    if (isHovered || isTouching) return;
 
     const interval = setInterval(() => {
-      setRotation((prev) => prev - 0.3); // Slow continuous rotation
+      setRotation((prev) => prev - 0.3);
     }, 30);
 
     return () => clearInterval(interval);
-  }, [isHovered]);
+  }, [isHovered, isTouching]);
+
+  // Touch handlers for swipe navigation
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    setIsTouching(true);
+    touchStartRef.current = {
+      x: e.touches[0].clientX,
+      rotation: rotation,
+    };
+  }, [rotation]);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!touchStartRef.current) return;
+
+    const deltaX = e.touches[0].clientX - touchStartRef.current.x;
+    // Swipe sensitivity: 1px = 0.5 degrees
+    const newRotation = touchStartRef.current.rotation + deltaX * 0.5;
+    setRotation(newRotation);
+  }, []);
+
+  const handleTouchEnd = useCallback(() => {
+    setIsTouching(false);
+    touchStartRef.current = null;
+  }, []);
 
   return (
     <div
-      className="relative w-full h-[500px] flex items-center justify-center"
+      className="relative w-full h-[350px] sm:h-[400px] md:h-[500px] flex items-center justify-center"
       style={{ perspective: '1200px' }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
       ref={containerRef}
     >
-      {/* 3D Carousel */}
+      {/* 3D Carousel - responsive sizing */}
       <div
-        className="relative w-[200px] h-[300px]"
+        className="relative w-[140px] h-[210px] sm:w-[170px] sm:h-[255px] md:w-[200px] md:h-[300px]"
         style={{
           transformStyle: 'preserve-3d',
           transform: `rotateY(${rotation}deg)`,
@@ -53,14 +81,18 @@ export function HeroCarousel() {
       >
         {heroImages.map((image, index) => {
           const angle = index * anglePerImage;
+          // Responsive radius: smaller on mobile
+          const radiusClass = 'sm:translate-z-[220px] md:translate-z-[280px]';
           return (
             <div
               key={index}
-              className="absolute w-[200px] h-[300px] rounded-2xl overflow-hidden"
+              className="absolute w-[140px] h-[210px] sm:w-[170px] sm:h-[255px] md:w-[200px] md:h-[300px] rounded-2xl overflow-hidden"
               style={{
-                transform: `rotateY(${angle}deg) translateZ(${radius}px)`,
+                transform: `rotateY(${angle}deg) translateZ(var(--carousel-radius, 180px))`,
                 transformStyle: 'preserve-3d',
                 backfaceVisibility: 'hidden',
+                // CSS custom property for responsive radius
+                ['--carousel-radius' as string]: 'clamp(180px, 20vw + 100px, 280px)',
               }}
             >
               {/* Glassmorphism card */}
@@ -72,6 +104,7 @@ export function HeroCarousel() {
                       src={image.src}
                       alt={image.alt}
                       fill
+                      sizes="(max-width: 640px) 140px, (max-width: 768px) 170px, 200px"
                       className="object-cover transition-transform duration-500 group-hover:scale-110"
                     />
                     {/* Glass overlay */}
@@ -90,6 +123,10 @@ export function HeroCarousel() {
         })}
       </div>
 
+      {/* Swipe hint for mobile */}
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-xs text-muted-foreground sm:hidden">
+        Swipe to explore
+      </div>
     </div>
   );
 }
