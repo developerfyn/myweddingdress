@@ -62,43 +62,19 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Enrich history with gown names and generate signed URLs for storage paths
-    const enrichedHistory = await Promise.all((history || []).map(async item => {
-      let resultUrl = item.result_url;
-
-      console.log(`[${requestId}] Processing item ${item.id}: result_url starts with "${resultUrl?.substring(0, 30)}..."`);
-
-      // If result_url is a storage path, generate a signed URL
-      if (resultUrl?.startsWith('storage:')) {
-        const storagePath = resultUrl.substring(8); // Remove "storage:" prefix
-        console.log(`[${requestId}] Generating signed URL for storage path: ${storagePath}`);
-
-        const { data: signedUrlData, error: signedUrlError } = await supabase.storage
-          .from('tryon-results')
-          .createSignedUrl(storagePath, 3600); // 1 hour expiry
-
-        if (!signedUrlError && signedUrlData?.signedUrl) {
-          resultUrl = signedUrlData.signedUrl;
-          console.log(`[${requestId}] ✅ Generated signed URL successfully`);
-        } else {
-          console.log(`[${requestId}] ⚠️ Failed to generate signed URL: ${signedUrlError?.message}`);
-          resultUrl = null; // Can't display this item
-        }
-      } else if (resultUrl?.startsWith('data:')) {
-        console.log(`[${requestId}] Item has base64 data`);
-      } else if (resultUrl?.startsWith('http')) {
-        console.log(`[${requestId}] Item has direct URL (legacy)`);
-      } else {
-        console.log(`[${requestId}] ⚠️ Unknown result_url format: ${resultUrl?.substring(0, 50)}`);
-      }
+    // Enrich history with gown names and use proxy URLs for secure access
+    const enrichedHistory = (history || []).map(item => {
+      // Use proxy URL for all images - never expose storage URLs to client
+      // The proxy verifies ownership before serving the image
+      const proxyUrl = `/api/tryon-image?id=${item.id}`;
 
       return {
         ...item,
-        result_url: resultUrl,
+        result_url: proxyUrl,
         gown_name: gownMap[item.dress_id]?.name || null,
         gown_image_url: gownMap[item.dress_id]?.image_url || null,
       };
-    }));
+    });
 
     console.log(`[${requestId}] ✅ Found ${history?.length || 0} history items (total: ${count})`);
 

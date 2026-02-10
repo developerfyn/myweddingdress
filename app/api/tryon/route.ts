@@ -337,7 +337,7 @@ export async function POST(request: NextRequest) {
         cachedImage = cacheResult.result_url;
       }
 
-      if (cachedImage) {
+      if (cachedImage && cacheResult.cache_id) {
         console.log(`[${requestId}] ⏱️  Cache lookup: ${formatDuration(cacheTime)}`);
 
         // Refund credits on cache hit since no API call was made
@@ -348,9 +348,12 @@ export async function POST(request: NextRequest) {
         console.log(`[${requestId}] 💰 Cost: 0 credits (cached - saved 2 credits / $0.075)`);
         console.log('-'.repeat(60) + '\n');
 
+        // Return proxy URL instead of direct signed URL for security
+        const proxyUrl = `/api/tryon-image?id=${cacheResult.cache_id}`;
+
         return NextResponse.json({
           success: true,
-          image: cachedImage,
+          image: proxyUrl,
           cached: true,
           cacheId: cacheResult.cache_id,
           timing: {
@@ -579,16 +582,24 @@ export async function POST(request: NextRequest) {
       cacheUrl,
       null
     );
-    if (cacheSaveResult.success) {
+    // Determine which URL to return
+    let responseImageUrl: string;
+
+    if (cacheSaveResult.success && cacheSaveResult.cache_id) {
       console.log(`[${requestId}] ✅ Result cached for 7 days (id: ${cacheSaveResult.cache_id})`);
+      // Return proxy URL for security - never expose direct storage URLs
+      responseImageUrl = `/api/tryon-image?id=${cacheSaveResult.cache_id}`;
     } else {
-      console.log(`[${requestId}] ⚠️ Failed to cache result`);
+      console.log(`[${requestId}] ⚠️ Failed to cache result, returning direct URL as fallback`);
+      // Fallback: return the signed URL directly (less secure, but ensures functionality)
+      responseImageUrl = resultUrl;
     }
 
     return NextResponse.json({
       success: true,
-      image: resultUrl,
+      image: responseImageUrl,
       cached: false,
+      cacheId: cacheSaveResult.cache_id || null,
       timing: {
         total: totalTime,
         apiCall: apiTime,
