@@ -152,10 +152,21 @@ export function TryOnModal({
         toast.error('Failed to download video.');
       }
     } else if (currentTryOnResult) {
-      const link = document.createElement('a');
-      link.href = currentTryOnResult;
-      link.download = `tryon-${gown.name.replace(/\s+/g, '-').toLowerCase()}.png`;
-      link.click();
+      const filename = `tryon-${gown.name.replace(/\s+/g, '-').toLowerCase()}.png`;
+      toast.info('Downloading image...');
+      try {
+        // Fetch as blob to enable cross-origin download
+        const response = await fetch(currentTryOnResult);
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = filename;
+        link.click();
+        URL.revokeObjectURL(blobUrl);
+      } catch {
+        toast.error('Failed to download image.');
+      }
     }
   };
 

@@ -345,12 +345,21 @@ export function TryOnGenerationProvider({ children }: { children: ReactNode }) {
     setSelectedJobId(null);
   }, []);
 
-  const handleOverlayDownload = useCallback(() => {
+  const handleOverlayDownload = useCallback(async () => {
     if (!selectedJob?.result || !selectedJob.gown) return;
-    const link = document.createElement('a');
-    link.href = selectedJob.result;
-    link.download = `tryon-${selectedJob.gown.name.replace(/\s+/g, '-').toLowerCase()}.png`;
-    link.click();
+    const filename = `tryon-${selectedJob.gown.name.replace(/\s+/g, '-').toLowerCase()}.png`;
+    try {
+      const response = await fetch(selectedJob.result);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(blobUrl);
+    } catch {
+      console.error('Failed to download image');
+    }
   }, [selectedJob]);
 
   const handleOverlayShare = useCallback(async () => {

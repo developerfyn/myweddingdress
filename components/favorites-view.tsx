@@ -57,15 +57,24 @@ export function FavoritesView({
   };
 
   // Download result
-  const downloadResult = (item: HistoryItem) => {
+  const downloadResult = async (item: HistoryItem) => {
     const imageData = item.result_base64 || item.result_url;
     if (!imageData) return;
 
     const dressInfo = getDressInfo(item.dress_id);
-    const link = document.createElement('a');
-    link.href = imageData;
-    link.download = `tryon-${dressInfo.name.replace(/\s+/g, '-').toLowerCase()}.png`;
-    link.click();
+    const filename = `tryon-${dressInfo.name.replace(/\s+/g, '-').toLowerCase()}.png`;
+    try {
+      const response = await fetch(imageData);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(blobUrl);
+    } catch {
+      console.error('Failed to download image');
+    }
   };
 
   // Delete history item

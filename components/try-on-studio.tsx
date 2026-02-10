@@ -348,13 +348,22 @@ export function TryOnStudio({
   // All gowns are now unlocked - usage limits are handled separately
 
   // Helper to download the try-on result
-  const downloadResult = () => {
+  const downloadResult = async () => {
     if (!tryOnResult) return;
 
-    const link = document.createElement('a');
-    link.href = tryOnResult;
-    link.download = `tryon-${selectedGown?.name || 'result'}.png`;
-    link.click();
+    const filename = `tryon-${selectedGown?.name || 'result'}.png`;
+    try {
+      const response = await fetch(tryOnResult);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(blobUrl);
+    } catch {
+      console.error('Failed to download image');
+    }
   };
 
   // Helper to download/save the video
