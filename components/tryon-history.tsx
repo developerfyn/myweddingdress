@@ -72,12 +72,17 @@ export function TryOnHistory({ isSubscribed, favorites, onToggleFavorite, credit
     return { name: 'Unknown Dress', category: 'Unknown', image: null };
   };
 
-  // Format date
+  // Format date - uses calendar dates in user's timezone, not raw time differences
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    // Get calendar dates in local timezone (ignoring time component)
+    const dateDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    // Calculate difference in calendar days
+    const diffDays = Math.round((today.getTime() - dateDay.getTime()) / (1000 * 60 * 60 * 24));
 
     if (diffDays === 0) {
       return 'Today';

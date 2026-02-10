@@ -195,9 +195,49 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Step 1.4: Handle proxy URLs - convert to base64
+    let processedImage = image;
+    if (image.startsWith('/api/tryon-image')) {
+      console.log(`[${requestId}] 🔄 Step 1.4: Fetching image from proxy URL...`);
+      try {
+        // Build absolute URL for server-side fetch
+        const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://myweddingdress.app';
+        const absoluteUrl = `${baseUrl}${image}`;
+
+        // Forward cookies for authentication
+        const cookieHeader = request.headers.get('cookie') || '';
+
+        const proxyResponse = await fetch(absoluteUrl, {
+          headers: {
+            'Cookie': cookieHeader,
+          },
+        });
+
+        if (!proxyResponse.ok) {
+          throw new Error(`Proxy fetch failed: ${proxyResponse.status}`);
+        }
+
+        const imageBuffer = await proxyResponse.arrayBuffer();
+        const contentType = proxyResponse.headers.get('content-type') || 'image/png';
+        processedImage = `data:${contentType};base64,${Buffer.from(imageBuffer).toString('base64')}`;
+        console.log(`[${requestId}] ✅ Step 1.4: Image fetched and converted to base64 (${(imageBuffer.byteLength / 1024).toFixed(1)}KB)`);
+      } catch (err) {
+        console.log(`[${requestId}] ❌ Failed to fetch proxy image: ${err}`);
+        if (creditsDeducted) {
+          await refundCredits(supabase, userId, 'video_generation', requestId);
+          await logUsageFailure(supabase, requestId, 'Failed to fetch try-on image', performance.now() - startTime);
+          console.log(`[${requestId}] 💸 Credits refunded due to proxy fetch failure`);
+        }
+        return NextResponse.json(
+          { error: 'Failed to fetch try-on image. Please try again.' },
+          { status: 400 }
+        );
+      }
+    }
+
     // Step 1.5: Validate image
     console.log(`[${requestId}] 🖼️ Step 1.5: Validating image...`);
-    const imageValidation = validateBase64Image(image, 'Input image');
+    const imageValidation = validateBase64Image(processedImage, 'Input image');
     if (!imageValidation.valid) {
       console.log(`[${requestId}] ❌ Image validation failed: ${imageValidation.error}`);
       // Refund credits on validation failure
@@ -235,8 +275,8 @@ export async function POST(request: NextRequest) {
     const uploadStart = performance.now();
 
     // Convert base64 data URI to blob for upload
-    const base64Data = image.split(',')[1];
-    const mimeType = image.match(/data:([^;]+);/)?.[1] || 'image/png';
+    const base64Data = processedImage.split(',')[1];
+    const mimeType = processedImage.match(/data:([^;]+);/)?.[1] || 'image/png';
     const binaryData = Buffer.from(base64Data, 'base64');
     const blob = new Blob([binaryData], { type: mimeType });
     const file = new File([blob], 'tryon-image.png', { type: mimeType });
