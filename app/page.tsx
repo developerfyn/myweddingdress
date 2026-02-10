@@ -332,13 +332,13 @@ export default function LandingPage() {
 
           <div className="grid md:grid-cols-2 gap-12 items-center">
             {/* Video */}
-            <div className="rounded-2xl overflow-hidden border border-border shadow-lg max-h-[350px]">
+            <div className="rounded-2xl overflow-hidden border border-border shadow-lg max-w-xs mx-auto">
               <video
                 autoPlay
                 loop
                 muted
                 playsInline
-                className="w-full h-full object-cover"
+                className="w-full h-auto"
               >
                 <source src="/assets/home-screen-video.mp4" type="video/mp4" />
               </video>
