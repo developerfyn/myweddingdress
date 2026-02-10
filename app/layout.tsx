@@ -12,8 +12,8 @@ export const metadata: Metadata = {
   title: 'My Wedding Dress - Virtual Try-On',
   description: 'Try on 500+ designer wedding gowns virtually. Find your dream dress.',
   icons: {
-    icon: '/assets/mwd.png',
-    apple: '/assets/mwd.png',
+    icon: '/favicon.png',
+    apple: '/apple-icon.png',
   },
 }
 

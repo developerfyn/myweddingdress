@@ -3,7 +3,7 @@ my wedding dress:
     ✔ define free gowns and premium gowns @started(26-02-07 10:51) @done(26-02-09 14:46) @lasted(2d3h55m59s)
     ✔ review quality of try-on result @started(26-02-07 10:51) @done(26-02-09 14:47) @lasted(2d3h56m2s)
     ✔ implement credit system @started(26-02-09 14:47) @done(26-02-09 17:30) @lasted(2h43m56s)
-    ☐ stripe integration @started(26-02-09 17:31)
+    ✔ stripe integration @started(26-02-09 17:31) @done(26-02-10 17:07) @lasted(23h36m48s)
 
     ☐ optimise for web
     ☐ optimise for mobile
