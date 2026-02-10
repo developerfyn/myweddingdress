@@ -315,18 +315,6 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Feature Video */}
-          <div className="mt-16 max-w-2xl mx-auto rounded-3xl overflow-hidden bg-muted border border-border">
-            <video
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="w-full h-auto"
-            >
-              <source src="/assets/home-screen-video.mp4" type="video/mp4" />
-            </video>
-          </div>
         </div>
       </section>
 
@@ -342,39 +330,57 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                step: '01',
-                title: 'Upload Your Photo',
-                description:
-                  'Take a full-body photo or upload one from your gallery. Our AI works best with clear, well-lit images.',
-              },
-              {
-                step: '02',
-                title: 'Browse & Try On',
-                description:
-                  'Explore 500+ designer gowns across all styles. Tap any dress to instantly see how it looks on you.',
-              },
-              {
-                step: '03',
-                title: 'Animate & Share',
-                description:
-                  'Turn your try-on into stunning videos. See how the dress flows and moves, then share with loved ones.',
-              },
-            ].map((item, index) => (
-              <div key={index} className="relative">
-                <div className="text-7xl font-serif font-bold text-primary/10 mb-4">
-                  {item.step}
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            {/* Video */}
+            <div className="rounded-2xl overflow-hidden border border-border shadow-lg">
+              <video
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="w-full h-auto"
+              >
+                <source src="/assets/home-screen-video.mp4" type="video/mp4" />
+              </video>
+            </div>
+
+            {/* Steps */}
+            <div className="space-y-8">
+              {[
+                {
+                  step: '01',
+                  title: 'Upload Your Photo',
+                  description:
+                    'Take a full-body photo or upload one from your gallery. Our AI works best with clear, well-lit images.',
+                },
+                {
+                  step: '02',
+                  title: 'Browse & Try On',
+                  description:
+                    'Explore 500+ designer gowns across all styles. Tap any dress to instantly see how it looks on you.',
+                },
+                {
+                  step: '03',
+                  title: 'Animate & Share',
+                  description:
+                    'Turn your try-on into stunning videos. See how the dress flows and moves, then share with loved ones.',
+                },
+              ].map((item, index) => (
+                <div key={index} className="flex gap-4">
+                  <div className="text-4xl font-serif font-bold text-primary/20 flex-shrink-0">
+                    {item.step}
+                  </div>
+                  <div>
+                    <h3 className="font-serif text-lg font-semibold text-foreground mb-1">
+                      {item.title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {item.description}
+                    </p>
+                  </div>
                 </div>
-                <h3 className="font-serif text-xl font-semibold text-foreground mb-3">
-                  {item.title}
-                </h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  {item.description}
-                </p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </section>
