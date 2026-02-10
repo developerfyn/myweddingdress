@@ -316,7 +316,7 @@ export default function LandingPage() {
           </div>
 
           {/* Feature Video */}
-          <div className="mt-16 rounded-3xl overflow-hidden bg-muted border border-border">
+          <div className="mt-16 max-w-2xl mx-auto rounded-3xl overflow-hidden bg-muted border border-border">
             <video
               autoPlay
               loop
@@ -417,7 +417,7 @@ export default function LandingPage() {
                 ))}
               </ul>
               <Button variant="outline" className="w-full bg-transparent" asChild>
-                <Link href="/try-on">Start for free</Link>
+                <Link href="/signup">Start for free</Link>
               </Button>
             </div>
 
@@ -458,7 +458,7 @@ export default function LandingPage() {
                 className="w-full bg-white text-primary hover:bg-white/90"
                 asChild
               >
-                <Link href="/try-on">Get Started</Link>
+                <Link href="/signup">Get Started</Link>
               </Button>
             </div>
           </div>
