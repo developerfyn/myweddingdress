@@ -15,7 +15,7 @@ interface UploadModalProps {
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const MAX_FILES = 5;
-const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/avif'];
 
 interface FileWithPreview {
   file: File;
@@ -38,7 +38,7 @@ export function UploadModal({ isOpen, onClose, onUpload, existingPhotosCount = 0
 
   const validateFile = (file: File): string | null => {
     if (!ACCEPTED_TYPES.includes(file.type)) {
-      return `${file.name}: Please upload a JPG, PNG, or WebP image`;
+      return `${file.name}: Please upload a JPG, PNG, WebP, or AVIF image`;
     }
     if (file.size > MAX_FILE_SIZE) {
       return `${file.name}: File size must be less than 5MB`;
@@ -234,7 +234,7 @@ export function UploadModal({ isOpen, onClose, onUpload, existingPhotosCount = 0
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/jpeg,image/png,image/webp"
+            accept="image/jpeg,image/png,image/webp,image/avif"
             multiple
             onChange={handleInputChange}
             className="hidden"

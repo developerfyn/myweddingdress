@@ -11,7 +11,7 @@ import type { UserPhoto } from '@/lib/photo-utils';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const MAX_PHOTOS = 5;
-const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/avif'];
 
 interface SettingsViewProps {
   userPhotos: UserPhoto[];
@@ -42,7 +42,7 @@ export function SettingsView({
 
   const validateFile = (file: File): string | null => {
     if (!ACCEPTED_TYPES.includes(file.type)) {
-      return 'Please upload JPG, PNG, or WebP images';
+      return 'Please upload JPG, PNG, WebP, or AVIF images';
     }
     if (file.size > MAX_FILE_SIZE) {
       return 'File size must be less than 5MB';
@@ -200,11 +200,6 @@ export function SettingsView({
                   <h3 className="font-semibold text-foreground">
                     {isSubscribed ? 'PRO Member' : 'Free Plan'}
                   </h3>
-                  <p className="text-sm text-muted-foreground">
-                    {isSubscribed
-                      ? 'Access to all 500+ wedding dresses'
-                      : 'Upgrade to unlock all dresses'}
-                  </p>
                 </div>
               </div>
               {!isSubscribed && (
@@ -246,7 +241,7 @@ export function SettingsView({
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/jpeg,image/png,image/webp"
+            accept="image/jpeg,image/png,image/webp,image/avif"
             multiple
             onChange={handleFileInput}
             className="hidden"

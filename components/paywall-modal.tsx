@@ -18,17 +18,16 @@ const features = [
   },
   {
     icon: Video,
-    title: 'Video animations',
-    description: 'Bring your try-ons to life',
+    title: 'Realistic video generation',
+    description: 'See yourself walking & twirling in any gown',
   },
 ];
 
 export function PaywallModal({ isOpen, onClose, onSubscribe }: PaywallModalProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   if (!isOpen) return null;
-
-  const [error, setError] = useState<string | null>(null);
 
   const handleSubscribe = async () => {
     setIsLoading(true);
@@ -89,7 +88,7 @@ export function PaywallModal({ isOpen, onClose, onSubscribe }: PaywallModalProps
               Upgrade to PRO
             </h3>
             <p className="text-muted-foreground text-sm">
-              Find your perfect dress faster
+              Find your perfect wedding dress
             </p>
           </div>
 

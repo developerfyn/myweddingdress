@@ -3,6 +3,9 @@ import { stripe } from '@/lib/stripe';
 import { createClient } from '@supabase/supabase-js';
 import Stripe from 'stripe';
 
+// Credits for quarterly plan
+const QUARTERLY_CREDITS = 400;
+
 // Use service role for webhook (no user context)
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -14,7 +17,13 @@ export async function POST(request: NextRequest) {
   const signature = request.headers.get('stripe-signature');
 
   if (!signature) {
+    console.error('[Webhook] No signature provided');
     return NextResponse.json({ error: 'No signature' }, { status: 400 });
+  }
+
+  if (!process.env.STRIPE_WEBHOOK_SECRET) {
+    console.error('[Webhook] STRIPE_WEBHOOK_SECRET not configured');
+    return NextResponse.json({ error: 'Webhook secret not configured' }, { status: 500 });
   }
 
   let event: Stripe.Event;
@@ -23,18 +32,26 @@ export async function POST(request: NextRequest) {
     event = stripe.webhooks.constructEvent(
       body,
       signature,
-      process.env.STRIPE_WEBHOOK_SECRET!
+      process.env.STRIPE_WEBHOOK_SECRET
     );
   } catch (err: any) {
     console.error('[Webhook] Signature verification failed:', err.message);
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
   }
 
+  console.log(`[Webhook] Received event: ${event.type}`);
+
   try {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
         await handleCheckoutComplete(session);
+        break;
+      }
+
+      case 'invoice.payment_succeeded': {
+        const invoice = event.data.object as Stripe.Invoice;
+        await handleInvoicePaymentSucceeded(invoice);
         break;
       }
 
@@ -64,21 +81,33 @@ export async function POST(request: NextRequest) {
   }
 }
 
+/**
+ * Handle initial checkout completion
+ */
 async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
-  const userId = session.subscription
-    ? (await stripe.subscriptions.retrieve(session.subscription as string))
-        .metadata.supabase_user_id
-    : session.metadata?.supabase_user_id;
+  console.log('[Webhook] Processing checkout.session.completed');
 
-  if (!userId) {
-    console.error('[Webhook] No user ID found in session');
+  if (session.mode !== 'subscription') {
+    console.log('[Webhook] Not a subscription checkout, skipping');
     return;
   }
 
   const subscriptionId = session.subscription as string;
-  const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+  if (!subscriptionId) {
+    console.error('[Webhook] No subscription ID in session');
+    return;
+  }
 
-  // Update or create subscription in database
+  // Get subscription details from Stripe
+  const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+  const userId = subscription.metadata.supabase_user_id;
+
+  if (!userId) {
+    console.error('[Webhook] No user ID in subscription metadata');
+    return;
+  }
+
+  // Create/update subscription in database
   const { error } = await supabaseAdmin
     .from('subscriptions')
     .upsert({
@@ -87,23 +116,37 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
       stripe_customer_id: session.customer as string,
       plan: 'quarterly',
       status: 'active',
-      credits_balance: 400,
-      credits_purchased: 400,
-      period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+      credits_balance: QUARTERLY_CREDITS,
+      credits_purchased: QUARTERLY_CREDITS,
+      current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
       current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+      updated_at: new Date().toISOString(),
     }, {
       onConflict: 'user_id',
     });
 
   if (error) {
-    console.error('[Webhook] Failed to update subscription:', error);
+    console.error('[Webhook] Failed to create subscription:', error);
     throw error;
   }
 
-  console.log(`[Webhook] Subscription activated for user ${userId}`);
+  console.log(`[Webhook] Subscription activated for user ${userId} with ${QUARTERLY_CREDITS} credits`);
 }
 
-async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
+/**
+ * Handle invoice payment (including renewals)
+ */
+async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
+  console.log('[Webhook] Processing invoice.payment_succeeded');
+
+  // Only process subscription invoices
+  if (!invoice.subscription) {
+    console.log('[Webhook] Not a subscription invoice, skipping');
+    return;
+  }
+
+  const subscriptionId = invoice.subscription as string;
+  const subscription = await stripe.subscriptions.retrieve(subscriptionId);
   const userId = subscription.metadata.supabase_user_id;
 
   if (!userId) {
@@ -111,24 +154,106 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
     return;
   }
 
-  const status = subscription.status === 'active' ? 'active' : 'inactive';
+  // Check if this is a renewal (not the first invoice)
+  // billing_reason: 'subscription_create' for first, 'subscription_cycle' for renewals
+  const isRenewal = invoice.billing_reason === 'subscription_cycle';
+
+  if (isRenewal) {
+    console.log(`[Webhook] Processing renewal for user ${userId}`);
+
+    // Get current subscription to preserve rollover credits
+    const { data: currentSub } = await supabaseAdmin
+      .from('subscriptions')
+      .select('credits_balance')
+      .eq('user_id', userId)
+      .single();
+
+    // Add new credits (with rollover from previous period, max 2x allocation)
+    const rolloverCredits = Math.min(currentSub?.credits_balance || 0, QUARTERLY_CREDITS);
+    const newBalance = rolloverCredits + QUARTERLY_CREDITS;
+
+    const { error } = await supabaseAdmin
+      .from('subscriptions')
+      .update({
+        credits_balance: newBalance,
+        credits_purchased: QUARTERLY_CREDITS,
+        current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+        current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('user_id', userId);
+
+    if (error) {
+      console.error('[Webhook] Failed to update subscription for renewal:', error);
+      throw error;
+    }
+
+    console.log(`[Webhook] Renewal complete for user ${userId}: ${rolloverCredits} rollover + ${QUARTERLY_CREDITS} new = ${newBalance} credits`);
+  } else {
+    console.log('[Webhook] First invoice, handled by checkout.session.completed');
+  }
+}
+
+/**
+ * Handle subscription updates (status changes, etc.)
+ */
+async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
+  console.log('[Webhook] Processing customer.subscription.updated');
+
+  const userId = subscription.metadata.supabase_user_id;
+
+  if (!userId) {
+    console.error('[Webhook] No user ID in subscription metadata');
+    return;
+  }
+
+  // Map Stripe status to our status
+  let status: 'active' | 'inactive' | 'past_due' | 'canceled';
+  switch (subscription.status) {
+    case 'active':
+    case 'trialing':
+      status = 'active';
+      break;
+    case 'past_due':
+      status = 'past_due';
+      break;
+    case 'canceled':
+    case 'unpaid':
+      status = 'canceled';
+      break;
+    default:
+      status = 'inactive';
+  }
+
+  const updateData: Record<string, any> = {
+    status,
+    updated_at: new Date().toISOString(),
+  };
+
+  // Only include period_end if it exists
+  if (subscription.current_period_end) {
+    updateData.current_period_end = new Date(subscription.current_period_end * 1000).toISOString();
+  }
 
   const { error } = await supabaseAdmin
     .from('subscriptions')
-    .update({
-      status,
-      current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
-    })
+    .update(updateData)
     .eq('user_id', userId);
 
   if (error) {
     console.error('[Webhook] Failed to update subscription:', error);
+    throw error;
   }
 
-  console.log(`[Webhook] Subscription updated for user ${userId}: ${status}`);
+  console.log(`[Webhook] Subscription updated for user ${userId}: status=${status}`);
 }
 
+/**
+ * Handle subscription cancellation
+ */
 async function handleSubscriptionCancelled(subscription: Stripe.Subscription) {
+  console.log('[Webhook] Processing customer.subscription.deleted');
+
   const userId = subscription.metadata.supabase_user_id;
 
   if (!userId) {
@@ -146,12 +271,14 @@ async function handleSubscriptionCancelled(subscription: Stripe.Subscription) {
       credits_purchased: 2,
       stripe_subscription_id: null,
       current_period_end: null,
+      updated_at: new Date().toISOString(),
     })
     .eq('user_id', userId);
 
   if (error) {
     console.error('[Webhook] Failed to cancel subscription:', error);
+    throw error;
   }
 
-  console.log(`[Webhook] Subscription cancelled for user ${userId}`);
+  console.log(`[Webhook] Subscription cancelled for user ${userId}, downgraded to free`);
 }

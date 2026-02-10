@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase-server';
-import { getUserCredits, updateUserTimezone } from '@/lib/usage-tracking';
+import { getUserCredits, updateUserTimezone, completeOnboarding } from '@/lib/usage-tracking';
 
 /**
  * GET /api/credits
@@ -48,7 +48,7 @@ export async function GET() {
 
 /**
  * POST /api/credits
- * Update user's timezone
+ * Update user's timezone or complete onboarding
  */
 export async function POST(request: NextRequest) {
   try {
@@ -68,42 +68,52 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { timezone } = body;
+    const { timezone, completeOnboarding: shouldCompleteOnboarding } = body;
 
-    if (!timezone) {
-      return NextResponse.json(
-        { success: false, error: 'Timezone is required' },
-        { status: 400 }
-      );
+    // Handle onboarding completion
+    if (shouldCompleteOnboarding) {
+      const completed = await completeOnboarding(supabase, user.id);
+
+      if (!completed) {
+        return NextResponse.json(
+          { success: false, error: 'Failed to complete onboarding' },
+          { status: 500 }
+        );
+      }
+
+      const credits = await getUserCredits(supabase, user.id);
+      return NextResponse.json({ success: true, credits });
     }
 
-    // Validate timezone
-    try {
-      Intl.DateTimeFormat(undefined, { timeZone: timezone });
-    } catch {
-      return NextResponse.json(
-        { success: false, error: 'Invalid timezone' },
-        { status: 400 }
-      );
+    // Handle timezone update
+    if (timezone) {
+      // Validate timezone
+      try {
+        Intl.DateTimeFormat(undefined, { timeZone: timezone });
+      } catch {
+        return NextResponse.json(
+          { success: false, error: 'Invalid timezone' },
+          { status: 400 }
+        );
+      }
+
+      const updated = await updateUserTimezone(supabase, user.id, timezone);
+
+      if (!updated) {
+        return NextResponse.json(
+          { success: false, error: 'Failed to update timezone' },
+          { status: 500 }
+        );
+      }
+
+      const credits = await getUserCredits(supabase, user.id);
+      return NextResponse.json({ success: true, credits });
     }
 
-    // Update timezone
-    const updated = await updateUserTimezone(supabase, user.id, timezone);
-
-    if (!updated) {
-      return NextResponse.json(
-        { success: false, error: 'Failed to update timezone' },
-        { status: 500 }
-      );
-    }
-
-    // Fetch updated credits
-    const credits = await getUserCredits(supabase, user.id);
-
-    return NextResponse.json({
-      success: true,
-      credits,
-    });
+    return NextResponse.json(
+      { success: false, error: 'No action specified' },
+      { status: 400 }
+    );
   } catch (error) {
     console.error('[API/credits] Error:', error);
     return NextResponse.json(

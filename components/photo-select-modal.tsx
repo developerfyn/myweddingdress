@@ -22,7 +22,7 @@ interface PhotoSelectModalProps {
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const MAX_PHOTOS = 5;
-const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/avif'];
 
 export function PhotoSelectModal({
   isOpen,
@@ -83,7 +83,7 @@ export function PhotoSelectModal({
 
   const validateFile = (file: File): string | null => {
     if (!ACCEPTED_TYPES.includes(file.type)) {
-      return 'Please upload a JPG, PNG, or WebP image';
+      return 'Please upload a JPG, PNG, WebP, or AVIF image';
     }
     if (file.size > MAX_FILE_SIZE) {
       return 'File size must be less than 5MB';
@@ -265,7 +265,7 @@ export function PhotoSelectModal({
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/jpeg,image/png,image/webp"
+            accept="image/jpeg,image/png,image/webp,image/avif"
             multiple
             onChange={handleFileSelect}
             className="hidden"

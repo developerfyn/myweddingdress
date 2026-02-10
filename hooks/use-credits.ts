@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { createClient } from '@/lib/supabase';
 import type { UserCredits } from '@/lib/usage-tracking';
 
@@ -10,12 +10,14 @@ interface UseCreditsResult {
   error: string | null;
   refetch: () => Promise<void>;
   updateTimezone: (timezone: string) => Promise<boolean>;
+  completeOnboarding: () => Promise<boolean>;
 }
 
 export function useCredits(): UseCreditsResult {
   const [credits, setCredits] = useState<UserCredits | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const timezoneChecked = useRef(false);
 
   const fetchCredits = useCallback(async () => {
     try {
@@ -73,16 +75,44 @@ export function useCredits(): UseCreditsResult {
     }
   }, []);
 
+  const completeOnboarding = useCallback(async (): Promise<boolean> => {
+    try {
+      const response = await fetch('/api/credits', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ completeOnboarding: true }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to complete onboarding');
+      }
+
+      if (data.success && data.credits) {
+        setCredits(data.credits);
+        return true;
+      }
+
+      return false;
+    } catch (err) {
+      console.error('[useCredits] Error completing onboarding:', err);
+      return false;
+    }
+  }, []);
+
   // Fetch credits on mount
   useEffect(() => {
     fetchCredits();
   }, [fetchCredits]);
 
-  // Auto-detect and update timezone on mount
+  // Auto-detect and update timezone on mount (only once per session)
   useEffect(() => {
-    if (credits && credits.timezone === 'UTC') {
+    if (credits && !timezoneChecked.current) {
+      timezoneChecked.current = true;
       const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      if (userTimezone !== 'UTC') {
+      // Update if timezone doesn't match user's browser timezone
+      if (credits.timezone !== userTimezone) {
         updateTimezone(userTimezone);
       }
     }
@@ -111,5 +141,6 @@ export function useCredits(): UseCreditsResult {
     error,
     refetch: fetchCredits,
     updateTimezone,
+    completeOnboarding,
   };
 }

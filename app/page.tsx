@@ -1,31 +1,39 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { HeroCarousel } from '@/components/hero-carousel';
+import { createClient } from '@/lib/supabase';
 import {
   ArrowRight,
   Sparkles,
   Camera,
   Heart,
-  LayoutGrid,
+  Video,
   Check,
   Star,
-  Play,
   Menu,
   X,
 } from 'lucide-react';
 
 export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setIsLoggedIn(!!user);
+    });
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
-        <nav className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+      <header className="fixed top-4 left-0 right-0 z-50 px-6">
+        <nav className="max-w-3xl mx-auto px-6 h-14 flex items-center justify-between bg-white rounded-full shadow-lg">
           <Link href="/" className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
               <Sparkles className="w-4 h-4 text-primary-foreground" />
@@ -36,7 +44,7 @@ export default function LandingPage() {
           </Link>
 
           {/* Desktop Nav */}
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden md:flex items-center gap-10">
             <Link
               href="#features"
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -57,15 +65,23 @@ export default function LandingPage() {
             </Link>
           </div>
 
-          <div className="hidden md:flex items-center gap-4">
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/login">Log in</Link>
-            </Button>
-            <Button size="sm" asChild>
-              <Link href="/signup">
-                Try for Free
-              </Link>
-            </Button>
+          <div className="hidden md:flex items-center gap-5">
+            {isLoggedIn ? (
+              <Button size="sm" asChild>
+                <Link href="/try-on">Dashboard</Link>
+              </Button>
+            ) : (
+              <>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href="/login">Log in</Link>
+                </Button>
+                <Button size="sm" asChild>
+                  <Link href="/signup">
+                    Try for Free
+                  </Link>
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -109,12 +125,20 @@ export default function LandingPage() {
                 Pricing
               </Link>
               <div className="flex gap-2 pt-2">
-                <Button variant="ghost" size="sm" className="flex-1" asChild>
-                  <Link href="/login">Log in</Link>
-                </Button>
-                <Button size="sm" className="flex-1" asChild>
-                  <Link href="/signup">Try Free</Link>
-                </Button>
+                {isLoggedIn ? (
+                  <Button size="sm" className="flex-1" asChild>
+                    <Link href="/try-on">Dashboard</Link>
+                  </Button>
+                ) : (
+                  <>
+                    <Button variant="ghost" size="sm" className="flex-1" asChild>
+                      <Link href="/login">Log in</Link>
+                    </Button>
+                    <Button size="sm" className="flex-1" asChild>
+                      <Link href="/signup">Try Free</Link>
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -151,32 +175,33 @@ export default function LandingPage() {
                   <ArrowRight className="w-4 h-4" />
                 </Link>
               </Button>
-              <Button size="lg" variant="outline" className="gap-2 bg-transparent">
-                <Play className="w-4 h-4" />
-                Watch Demo
-              </Button>
             </div>
 
             {/* Social Proof */}
             <div className="flex items-center gap-6">
               <div className="flex -space-x-2">
                 {[1, 2, 3, 4, 5].map((i) => (
-                  <div
+                  <Image
                     key={i}
-                    className="w-10 h-10 rounded-full bg-muted border-2 border-background flex items-center justify-center text-xs font-medium text-muted-foreground"
-                  >
-                    {String.fromCharCode(64 + i)}
-                  </div>
+                    src={`/assets/headshot-${i}.jpg`}
+                    alt={`Happy bride ${i}`}
+                    width={40}
+                    height={40}
+                    className="w-10 h-10 rounded-full border-2 border-background object-cover"
+                  />
                 ))}
               </div>
               <div>
-                <div className="flex items-center gap-1">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <Star
-                      key={i}
-                      className="w-4 h-4 fill-primary text-primary"
-                    />
-                  ))}
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-foreground">4.9</span>
+                  <div className="flex items-center gap-0.5">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <Star
+                        key={i}
+                        className="w-4 h-4 fill-primary text-primary"
+                      />
+                    ))}
+                  </div>
                 </div>
                 <p className="text-sm text-muted-foreground">
                   Loved by <span className="font-semibold text-foreground">10,000+</span> brides
@@ -187,26 +212,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Logo Strip */}
-      <section className="py-12 border-y border-border bg-muted/30">
-        <div className="max-w-7xl mx-auto px-6">
-          <p className="text-center text-sm text-muted-foreground mb-8">
-            Featured dresses from leading bridal designers
-          </p>
-          <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16">
-            {['Vera Wang', 'Monique Lhuillier', 'Oscar de la Renta', 'Pronovias', 'Jenny Packham'].map(
-              (brand) => (
-                <span
-                  key={brand}
-                  className="font-serif text-lg text-muted-foreground/60"
-                >
-                  {brand}
-                </span>
-              )
-            )}
-          </div>
-        </div>
-      </section>
 
       {/* Features Section */}
       <section id="features" className="py-24 px-6">
@@ -239,14 +244,14 @@ export default function LandingPage() {
             {/* Feature 2 */}
             <div className="group p-8 rounded-3xl bg-card border border-border hover:border-primary/30 hover:shadow-lg transition-all">
               <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 group-hover:bg-primary/20 transition-colors">
-                <LayoutGrid className="w-7 h-7 text-primary" />
+                <Video className="w-7 h-7 text-primary" />
               </div>
               <h3 className="font-serif text-xl font-semibold text-foreground mb-3">
-                Side-by-Side Compare
+                360° Video Animation
               </h3>
               <p className="text-muted-foreground leading-relaxed">
-                Compare your favorite dresses side-by-side to make confident
-                decisions. See all the details at once.
+                Transform any try-on into a 5-second video. See how the dress
+                flows and moves from every angle.
               </p>
             </div>
 
@@ -333,54 +338,63 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="font-serif text-4xl md:text-5xl font-semibold text-foreground mb-4 text-balance">
-              Brides love DressAI
+              Brides love My Wedding Dress
             </h2>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
             {[
               {
                 quote:
                   'I tried on 50 dresses virtually before visiting the boutique. Walked in knowing exactly what I wanted!',
-                name: 'Sarah M.',
-                location: 'New York, NY',
+                name: 'Sarah Mitchell',
               },
               {
                 quote:
-                  'The compare feature saved me so much time. I could finally see all my favorites next to each other.',
-                name: 'Emily R.',
-                location: 'Los Angeles, CA',
+                  'The video animation feature is incredible. Seeing the dress move and flow helped me make my final decision.',
+                name: 'Amanda Chen',
               },
               {
                 quote:
                   'Found my dream dress in a style I never would have tried in store. This app changed everything.',
-                name: 'Jessica L.',
-                location: 'Chicago, IL',
+                name: 'Jessica Laurent',
+              },
+              {
+                quote:
+                  'Saved me so much time! I knew exactly which 3 dresses to try on at the boutique.',
+                name: 'Rachel Thompson',
+              },
+              {
+                quote:
+                  'The AI try-on is shockingly realistic. My mom thought the photos were from a real fitting!',
+                name: 'Olivia Martinez',
+              },
+              {
+                quote:
+                  'I live in a small town with limited bridal shops. This let me explore hundreds of designer dresses I never would have seen otherwise.',
+                name: 'Emma Wilson',
               },
             ].map((testimonial, index) => (
               <div
                 key={index}
-                className="p-8 rounded-3xl bg-card border border-border"
+                className="break-inside-avoid p-6 rounded-2xl bg-white border border-border/50 shadow-sm"
               >
-                <div className="flex gap-1 mb-4">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <Star
-                      key={i}
-                      className="w-4 h-4 fill-primary text-primary"
-                    />
-                  ))}
-                </div>
-                <p className="text-foreground mb-6 leading-relaxed">
-                  &ldquo;{testimonial.quote}&rdquo;
-                </p>
-                <div>
-                  <p className="font-semibold text-foreground">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex gap-0.5">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <Star
+                        key={i}
+                        className="w-5 h-5 fill-primary text-primary"
+                      />
+                    ))}
+                  </div>
+                  <span className="text-sm text-muted-foreground">
                     {testimonial.name}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {testimonial.location}
-                  </p>
+                  </span>
                 </div>
+                <p className="text-foreground leading-relaxed">
+                  {testimonial.quote}
+                </p>
               </div>
             ))}
           </div>

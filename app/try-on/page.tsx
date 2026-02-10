@@ -64,7 +64,7 @@ export default function TryOnPage() {
   const { startVideoGeneration, isGeneratingVideo } = useVideoGeneration();
 
   // Credits
-  const { credits, isLoading: creditsLoading, refetch: refetchCredits } = useCredits();
+  const { credits, isLoading: creditsLoading, refetch: refetchCredits, completeOnboarding: markOnboardingComplete } = useCredits();
 
   // Compute effective credits (with simulation override) - memoized to prevent infinite re-renders
   const effectiveCredits = useMemo(() => {
@@ -160,14 +160,15 @@ export default function TryOnPage() {
     };
   }, [registerPaywallCallback]);
 
-  // Check for returning user and load data
-  // Load saved state from localStorage
+  // Check onboarding status from database
   useEffect(() => {
-    const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
-    if (hasSeenOnboarding) {
+    if (credits?.has_completed_onboarding) {
       setShowOnboarding(false);
     }
+  }, [credits]);
 
+  // Load saved state from localStorage
+  useEffect(() => {
     const savedFavorites = localStorage.getItem('favorites');
     if (savedFavorites) {
       setFavorites(JSON.parse(savedFavorites));
@@ -210,16 +211,16 @@ export default function TryOnPage() {
 
 
   // Handle Onboarding Complete
-  const handleOnboardingComplete = () => {
+  const handleOnboardingComplete = async () => {
     setShowOnboarding(false);
-    localStorage.setItem('hasSeenOnboarding', 'true');
+    // Save to database so it persists across sessions/devices
+    await markOnboardingComplete();
   };
 
   // Handle Logout
   const handleLogout = async () => {
     try {
       // Clear localStorage (photos are in Supabase Storage, not localStorage)
-      localStorage.removeItem('hasSeenOnboarding');
       localStorage.removeItem('favorites');
       localStorage.removeItem('historyFavorites');
       localStorage.removeItem('studioGowns');

@@ -39,6 +39,7 @@ export interface UserCredits {
   timezone: string;
   can_generate_video: boolean;
   reset_time: string;
+  has_completed_onboarding: boolean;
 }
 
 export interface DeductCreditsResult {
@@ -80,6 +81,7 @@ interface GetUserCreditsResponse {
   timezone: string;
   can_generate_video: boolean;
   reset_time: string;
+  has_completed_onboarding: boolean;
 }
 
 export async function getUserCredits(
@@ -104,6 +106,7 @@ export async function getUserCredits(
     timezone: data.timezone,
     can_generate_video: Boolean(data.can_generate_video),
     reset_time: data.reset_time,
+    has_completed_onboarding: Boolean(data.has_completed_onboarding),
   };
 }
 
@@ -200,6 +203,27 @@ export async function updateUserTimezone(
 
   if (error) {
     console.error('[Credits] Failed to update timezone:', error.message);
+    return false;
+  }
+
+  return Boolean(data);
+}
+
+/**
+ * Mark onboarding as complete
+ */
+export async function completeOnboarding(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<boolean> {
+  const { data, error } = await supabase
+    .rpc('complete_onboarding', {
+      p_user_id: userId,
+    })
+    .single();
+
+  if (error) {
+    console.error('[Credits] Failed to complete onboarding:', error.message);
     return false;
   }
 

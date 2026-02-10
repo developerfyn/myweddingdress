@@ -42,11 +42,6 @@ export function HeroCarousel() {
       onMouseLeave={() => setIsHovered(false)}
       ref={containerRef}
     >
-      {/* Glassmorphism backdrop */}
-      <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm border border-white/20 shadow-2xl overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-pink-500/10 via-purple-500/10 to-blue-500/10" />
-      </div>
-
       {/* 3D Carousel */}
       <div
         className="relative w-[200px] h-[300px]"
@@ -95,38 +90,6 @@ export function HeroCarousel() {
         })}
       </div>
 
-      {/* Center focus glow */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-pink-500/30 to-purple-500/30 rounded-full blur-3xl" />
-      </div>
-
-      {/* Floating particles effect - using static positions to avoid hydration mismatch */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[
-          { top: '25%', left: '15%', duration: '2.5s' },
-          { top: '45%', left: '85%', duration: '3.2s' },
-          { top: '70%', left: '25%', duration: '2.8s' },
-          { top: '35%', left: '65%', duration: '3.5s' },
-          { top: '60%', left: '45%', duration: '2.3s' },
-          { top: '20%', left: '75%', duration: '3.0s' },
-        ].map((particle, i) => (
-          <div
-            key={i}
-            className="absolute w-2 h-2 rounded-full bg-white/30 animate-pulse"
-            style={{
-              top: particle.top,
-              left: particle.left,
-              animationDelay: `${i * 0.5}s`,
-              animationDuration: particle.duration,
-            }}
-          />
-        ))}
-      </div>
-
-      {/* Interactive hint */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-sm text-white/70">
-        Hover to pause
-      </div>
     </div>
   );
 }
