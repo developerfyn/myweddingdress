@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
+import { HeroCarousel } from '@/components/hero-carousel';
 import { createClient } from '@/lib/supabase';
 import {
   ArrowRight,
@@ -163,17 +164,9 @@ export default function LandingPage() {
             </p> */}
           </div>
 
-          {/* Hero Video */}
-          <div className="relative max-w-4xl mx-auto rounded-2xl overflow-hidden shadow-xl">
-            <video
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="w-full h-auto"
-            >
-              <source src="/assets/home-screen-video.mp4" type="video/mp4" />
-            </video>
+          {/* 3D Carousel */}
+          <div className="relative">
+            <HeroCarousel />
           </div>
 
           {/* CTA Buttons & Social Proof */}
@@ -322,16 +315,17 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Feature Image */}
+          {/* Feature Video */}
           <div className="mt-16 rounded-3xl overflow-hidden bg-muted border border-border">
-            <div className="relative aspect-[2/1]">
-              <Image
-                src="/feature-tryon.jpg"
-                alt="Virtual try-on comparison feature"
-                fill
-                className="object-cover"
-              />
-            </div>
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-full h-auto"
+            >
+              <source src="/assets/home-screen-video.mp4" type="video/mp4" />
+            </video>
           </div>
         </div>
       </section>
