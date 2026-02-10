@@ -456,6 +456,7 @@ export function PhotoSelectModal({
               )}
             >
               Try On This Photo
+              <span className="text-white/80 text-sm">({CREDIT_COSTS.tryon} credits)</span>
             </button>
           </div>
         </div>

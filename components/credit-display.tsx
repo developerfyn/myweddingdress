@@ -112,9 +112,6 @@ export function CreditDisplay({
             </span>
             <span className="text-xs text-muted-foreground">credits</span>
           </div>
-          <p className="text-xs text-muted-foreground truncate">
-            {tryOnsRemaining} try-on{tryOnsRemaining !== 1 ? 's' : ''} left
-          </p>
         </div>
       </div>
       <div className="mt-2 pt-2 border-t border-border/50 flex items-center gap-1 text-xs text-muted-foreground">

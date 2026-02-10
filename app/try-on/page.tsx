@@ -33,7 +33,7 @@ export default function TryOnPage() {
   const router = useRouter();
 
   // App State
-  const [showOnboarding, setShowOnboarding] = useState(true);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [currentView, setCurrentView] = useState<ViewType>('browse');
 
   // User Data
@@ -162,8 +162,9 @@ export default function TryOnPage() {
 
   // Check onboarding status from database
   useEffect(() => {
-    if (credits?.has_completed_onboarding) {
-      setShowOnboarding(false);
+    if (credits) {
+      // Only show onboarding if user hasn't completed it
+      setShowOnboarding(!credits.has_completed_onboarding);
     }
   }, [credits]);
 

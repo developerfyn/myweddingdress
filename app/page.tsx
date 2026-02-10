@@ -4,11 +4,9 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { HeroCarousel } from '@/components/hero-carousel';
 import { createClient } from '@/lib/supabase';
 import {
   ArrowRight,
-  Sparkles,
   Camera,
   Heart,
   Video,
@@ -33,18 +31,22 @@ export default function LandingPage() {
     <div className="min-h-screen bg-background">
       {/* Navigation */}
       <header className="fixed top-4 left-0 right-0 z-50 px-6">
-        <nav className="max-w-3xl mx-auto px-6 h-14 flex items-center justify-between bg-white rounded-full shadow-lg">
+        <nav className="max-w-5xl mx-auto px-8 h-14 flex items-center justify-between bg-white rounded-full shadow-lg">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-primary-foreground" />
-            </div>
-            <span className="font-serif text-xl font-semibold text-foreground">
+            <Image
+              src="/assets/mwd.png"
+              alt="My Wedding Dress"
+              width={32}
+              height={32}
+              className="w-8 h-8 rounded-lg"
+            />
+            <span className="font-serif text-xl font-semibold italic bg-gradient-to-r from-[#FF6B9D] to-[#C86DD7] bg-clip-text text-transparent">
               My Wedding Dress
             </span>
           </Link>
 
           {/* Desktop Nav */}
-          <div className="hidden md:flex items-center gap-10">
+          <div className="hidden md:flex items-center gap-20">
             <Link
               href="#features"
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -65,7 +67,7 @@ export default function LandingPage() {
             </Link>
           </div>
 
-          <div className="hidden md:flex items-center gap-5">
+          <div className="hidden md:flex items-center gap-10">
             {isLoggedIn ? (
               <Button size="sm" asChild>
                 <Link href="/try-on">Dashboard</Link>
@@ -161,9 +163,17 @@ export default function LandingPage() {
             </p> */}
           </div>
 
-          {/* 3D Carousel */}
-          <div className="relative">
-            <HeroCarousel />
+          {/* Hero Video */}
+          <div className="relative max-w-4xl mx-auto rounded-2xl overflow-hidden shadow-xl">
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-full h-auto"
+            >
+              <source src="/assets/home-screen-video.mp4" type="video/mp4" />
+            </video>
           </div>
 
           {/* CTA Buttons & Social Proof */}
@@ -207,6 +217,48 @@ export default function LandingPage() {
                   Loved by <span className="font-semibold text-foreground">10,000+</span> brides
                 </p>
               </div>
+            </div>
+
+            {/* Testimonial Quotes */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8 max-w-5xl">
+              {[
+                {
+                  quote: 'I tried on 50 dresses virtually before visiting the boutique. Walked in knowing exactly what I wanted!',
+                  name: 'Sarah Mitchell',
+                },
+                {
+                  quote: 'The AI try-on is shockingly realistic. My mom thought the photos were from a real fitting!',
+                  name: 'Olivia Martinez',
+                },
+                {
+                  quote: 'Found my dream dress in a style I never would have tried in store. This app changed everything.',
+                  name: 'Jessica Laurent',
+                },
+                {
+                  quote: 'The video animation feature is incredible. Seeing the dress move and flow helped me make my final decision.',
+                  name: 'Amanda Chen',
+                },
+                {
+                  quote: 'Saved me so much time! I knew exactly which 3 dresses to try on at the boutique.',
+                  name: 'Rachel Thompson',
+                },
+                {
+                  quote: 'I live in a small town with limited bridal shops. This let me explore hundreds of designer dresses I never would have seen otherwise.',
+                  name: 'Emma Wilson',
+                },
+              ].map((testimonial, index) => (
+                <div
+                  key={index}
+                  className="p-4 rounded-xl bg-white/80 border border-border/50 shadow-sm text-center"
+                >
+                  <p className="text-sm text-foreground leading-relaxed mb-2">
+                    &ldquo;{testimonial.quote}&rdquo;
+                  </p>
+                  <span className="text-xs text-muted-foreground">
+                    — {testimonial.name}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -312,9 +364,9 @@ export default function LandingPage() {
               },
               {
                 step: '03',
-                title: 'Save & Compare',
+                title: 'Animate & Share',
                 description:
-                  'Save your favorites and compare them side-by-side. Share with loved ones to get their opinions.',
+                  'Turn your try-on into stunning videos. See how the dress flows and moves, then share with loved ones.',
               },
             ].map((item, index) => (
               <div key={index} className="relative">
@@ -333,80 +385,12 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="py-24 px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="font-serif text-4xl md:text-5xl font-semibold text-foreground mb-4 text-balance">
-              Brides love My Wedding Dress
-            </h2>
-          </div>
-
-          <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
-            {[
-              {
-                quote:
-                  'I tried on 50 dresses virtually before visiting the boutique. Walked in knowing exactly what I wanted!',
-                name: 'Sarah Mitchell',
-              },
-              {
-                quote:
-                  'The video animation feature is incredible. Seeing the dress move and flow helped me make my final decision.',
-                name: 'Amanda Chen',
-              },
-              {
-                quote:
-                  'Found my dream dress in a style I never would have tried in store. This app changed everything.',
-                name: 'Jessica Laurent',
-              },
-              {
-                quote:
-                  'Saved me so much time! I knew exactly which 3 dresses to try on at the boutique.',
-                name: 'Rachel Thompson',
-              },
-              {
-                quote:
-                  'The AI try-on is shockingly realistic. My mom thought the photos were from a real fitting!',
-                name: 'Olivia Martinez',
-              },
-              {
-                quote:
-                  'I live in a small town with limited bridal shops. This let me explore hundreds of designer dresses I never would have seen otherwise.',
-                name: 'Emma Wilson',
-              },
-            ].map((testimonial, index) => (
-              <div
-                key={index}
-                className="break-inside-avoid p-6 rounded-2xl bg-white border border-border/50 shadow-sm"
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex gap-0.5">
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <Star
-                        key={i}
-                        className="w-5 h-5 fill-primary text-primary"
-                      />
-                    ))}
-                  </div>
-                  <span className="text-sm text-muted-foreground">
-                    {testimonial.name}
-                  </span>
-                </div>
-                <p className="text-foreground leading-relaxed">
-                  {testimonial.quote}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Pricing */}
       <section id="pricing" className="py-24 px-6 bg-muted/30">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="font-serif text-4xl md:text-5xl font-semibold text-foreground mb-4 text-balance">
-              Beautifully You
+              Pricing
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Access to 500+ wedding gowns from the comfort of your home.
@@ -498,7 +482,7 @@ export default function LandingPage() {
             My Wedding Dress. Start your journey today.
           </p>
           <Button size="lg" className="gap-2" asChild>
-            <Link href="/try-on">
+            <Link href="/signup">
               Start Trying On Now
               <ArrowRight className="w-4 h-4" />
             </Link>
@@ -511,26 +495,30 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                <Sparkles className="w-4 h-4 text-primary-foreground" />
-              </div>
-              <span className="font-serif text-xl font-semibold text-foreground">
+              <Image
+                src="/assets/mwd.png"
+                alt="My Wedding Dress"
+                width={32}
+                height={32}
+                className="w-8 h-8 rounded-lg"
+              />
+              <span className="font-serif text-xl font-semibold italic bg-gradient-to-r from-[#FF6B9D] to-[#C86DD7] bg-clip-text text-transparent">
                 My Wedding Dress
               </span>
             </div>
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
-              <Link href="#" className="hover:text-foreground transition-colors">
+              <Link href="/privacy" className="hover:text-foreground transition-colors">
                 Privacy
               </Link>
-              <Link href="#" className="hover:text-foreground transition-colors">
+              <Link href="/terms" className="hover:text-foreground transition-colors">
                 Terms
               </Link>
-              <Link href="#" className="hover:text-foreground transition-colors">
+              <Link href="/contact" className="hover:text-foreground transition-colors">
                 Contact
               </Link>
             </div>
             <p className="text-sm text-muted-foreground">
-              2026 My Wedding Dress. All rights reserved.
+              2026 Viral App Brewery Pte Ltd. All rights reserved.
             </p>
           </div>
         </div>
