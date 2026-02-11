@@ -17,7 +17,7 @@ export const CREDIT_COSTS = {
  */
 export const CREDIT_ALLOCATIONS = {
   free: {
-    daily: 2, // 2 credits per day (1 try-on)
+    daily: 4, // 4 credits per day (2 try-ons)
     canGenerateVideo: false,
   },
   quarterly: {
