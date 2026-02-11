@@ -47,7 +47,7 @@ export default function LandingPage() {
           </Link>
 
           {/* Desktop Nav */}
-          <div className="hidden md:flex items-center gap-20">
+          <div className="hidden md:flex items-center gap-12">
             <Link
               href="#features"
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -65,6 +65,12 @@ export default function LandingPage() {
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               Pricing
+            </Link>
+            <Link
+              href="/blog"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Blog
             </Link>
           </div>
 
@@ -126,6 +132,13 @@ export default function LandingPage() {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Pricing
+              </Link>
+              <Link
+                href="/blog"
+                className="text-sm text-muted-foreground hover:text-foreground"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Blog
               </Link>
               <div className="flex gap-2 pt-2">
                 {isLoggedIn ? (
@@ -507,6 +520,9 @@ export default function LandingPage() {
               </span>
             </div>
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
+              <Link href="/blog" className="hover:text-foreground transition-colors">
+                Blog
+              </Link>
               <Link href="/privacy" className="hover:text-foreground transition-colors">
                 Privacy
               </Link>
