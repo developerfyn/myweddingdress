@@ -61,16 +61,16 @@ export default function LandingPage() {
               How It Works
             </Link>
             <Link
-              href="#pricing"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Pricing
-            </Link>
-            <Link
               href="/blog"
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               Blog
+            </Link>
+            <Link
+              href="#pricing"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Pricing
             </Link>
           </div>
 
@@ -127,18 +127,18 @@ export default function LandingPage() {
                 How It Works
               </Link>
               <Link
-                href="#pricing"
-                className="text-sm text-muted-foreground hover:text-foreground"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Pricing
-              </Link>
-              <Link
                 href="/blog"
                 className="text-sm text-muted-foreground hover:text-foreground"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Blog
+              </Link>
+              <Link
+                href="#pricing"
+                className="text-sm text-muted-foreground hover:text-foreground"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Pricing
               </Link>
               <div className="flex gap-2 pt-2">
                 {isLoggedIn ? (
