@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { ChevronRight, Sparkles, Camera, Heart, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import Image from 'next/image';
 
 interface OnboardingProps {
   onComplete: () => void;
@@ -67,9 +68,13 @@ export function Onboarding({ onComplete }: OnboardingProps) {
         
         {/* Logo on Image */}
         <div className="absolute top-8 left-8 flex items-center gap-3 z-10">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#FF6B9D] to-[#C86DD7] flex items-center justify-center">
-            <Sparkles className="w-6 h-6 text-white" />
-          </div>
+          <Image
+            src="/assets/mwd.png"
+            alt="My Wedding Dress"
+            width={48}
+            height={48}
+            className="w-12 h-12 rounded-xl"
+          />
           <div>
             <h1 className="font-serif text-xl text-white">My Wedding Dress</h1>
             <p className="text-sm text-white/70">Virtual Try-On</p>
@@ -93,9 +98,13 @@ export function Onboarding({ onComplete }: OnboardingProps) {
         <div className="flex-1 flex flex-col items-center justify-center px-8 lg:px-16 max-w-xl mx-auto">
           {/* Mobile Logo */}
           <div className="lg:hidden flex items-center gap-3 mb-12">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#FF6B9D] to-[#C86DD7] flex items-center justify-center">
-              <Sparkles className="w-6 h-6 text-white" />
-            </div>
+            <Image
+              src="/assets/mwd.png"
+              alt="My Wedding Dress"
+              width={48}
+              height={48}
+              className="w-12 h-12 rounded-xl"
+            />
             <div>
               <h1 className="font-serif text-xl text-foreground">My Wedding Dress</h1>
               <p className="text-sm text-muted-foreground">Virtual Try-On</p>

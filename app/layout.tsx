@@ -11,6 +11,15 @@ import './globals.css'
 export const metadata: Metadata = {
   title: 'My Wedding Dress - Virtual Try-On',
   description: 'Try on 500+ designer wedding gowns virtually. Find your dream dress.',
+  icons: {
+    icon: [
+      { url: '/favicon.png', type: 'image/png' },
+      { url: '/icon.png', type: 'image/png', sizes: '1024x1024' },
+    ],
+    apple: [
+      { url: '/apple-icon.png', type: 'image/png', sizes: '1024x1024' },
+    ],
+  },
 }
 
 export const viewport: Viewport = {

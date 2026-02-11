@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import {
   Heart,
   Sparkles,
@@ -65,9 +66,13 @@ export function Sidebar({
     >
       {/* Logo */}
       <div className="p-6 border-b border-border flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#FF6B9D] to-[#C86DD7] flex items-center justify-center flex-shrink-0">
-          <Sparkles className="w-5 h-5 text-white" />
-        </div>
+        <Image
+          src="/assets/mwd.png"
+          alt="My Wedding Dress"
+          width={40}
+          height={40}
+          className="w-10 h-10 rounded-xl flex-shrink-0"
+        />
         {!isCollapsed && (
           <div className="overflow-hidden">
             <h1 className="font-serif text-lg text-foreground whitespace-nowrap">My Wedding Dress</h1>
