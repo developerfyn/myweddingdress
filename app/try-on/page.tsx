@@ -25,6 +25,7 @@ import { CREDIT_COSTS } from '@/lib/usage-tracking';
 import type { Gown } from '@/lib/gowns';
 import { fetchUserPhotosWithSignedUrls, deleteUserPhoto, type UserPhoto } from '@/lib/photo-utils';
 import { Loader2 } from 'lucide-react';
+import { SceneSelector } from '@/components/scene-selector';
 
 type ViewType = 'browse' | 'favorites' | 'studio' | 'history' | 'settings';
 
@@ -58,6 +59,11 @@ export default function TryOnPage() {
   const [showDressIds, setShowDressIds] = useState(false);
   const [showImageUrls, setShowImageUrls] = useState(false);
   const [simulateSubscription, setSimulateSubscription] = useState<'none' | 'free' | 'pro'>('none');
+
+  // Scene Selector State
+  const [showSceneSelector, setShowSceneSelector] = useState(false);
+  const [pendingVideoGown, setPendingVideoGown] = useState<Gown | null>(null);
+  const [pendingVideoTryOnResult, setPendingVideoTryOnResult] = useState<string | null>(null);
 
   // TryOn Generation Context
   const { registerFavoriteCallbacks, registerVideoCallback, registerPaywallCallback } = useTryOnGeneration();
@@ -142,7 +148,10 @@ export default function TryOnPage() {
           return;
         }
 
-        startVideoGeneration(gown, tryOnResult, simulateSubscription === 'pro');
+        // Store pending video data and show scene selector
+        setPendingVideoGown(gown);
+        setPendingVideoTryOnResult(tryOnResult);
+        setShowSceneSelector(true);
       },
       isGeneratingVideo,
     });
@@ -150,7 +159,16 @@ export default function TryOnPage() {
     return () => {
       registerVideoCallback(null);
     };
-  }, [registerVideoCallback, startVideoGeneration, isGeneratingVideo, simulateSubscription]);
+  }, [registerVideoCallback, isGeneratingVideo]);
+
+  // Handle scene selection and start video generation
+  const handleSceneSelect = useCallback((sceneId: string) => {
+    if (!pendingVideoGown || !pendingVideoTryOnResult) return;
+    setShowSceneSelector(false);
+    startVideoGeneration(pendingVideoGown, pendingVideoTryOnResult, sceneId, simulateSubscription === 'pro');
+    setPendingVideoGown(null);
+    setPendingVideoTryOnResult(null);
+  }, [pendingVideoGown, pendingVideoTryOnResult, startVideoGeneration, simulateSubscription]);
 
   // Register paywall callback for upgrade prompts
   useEffect(() => {
@@ -527,6 +545,20 @@ export default function TryOnPage() {
         devBypassCredits={simulateSubscription === 'pro'}
         credits={effectiveCredits}
         onCreditsChange={refetchCredits}
+      />
+
+      {/* Scene Selector for Video Generation */}
+      <SceneSelector
+        open={showSceneSelector}
+        onOpenChange={(open) => {
+          setShowSceneSelector(open);
+          if (!open) {
+            setPendingVideoGown(null);
+            setPendingVideoTryOnResult(null);
+          }
+        }}
+        onSelectScene={handleSceneSelect}
+        isGenerating={isGeneratingVideo}
       />
 
       {/* Dev Tools */}

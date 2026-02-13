@@ -20,6 +20,7 @@ import { dressCategories } from '@/lib/dress-data';
 import { useVideoGeneration } from '@/components/video-generation-provider';
 import { TryOnResultModal } from '@/components/tryon-result-modal';
 import { CREDIT_COSTS, type UserCredits } from '@/lib/usage-tracking';
+import { SceneSelector } from '@/components/scene-selector';
 import type { Gown } from '@/lib/gowns';
 
 interface HistoryItem {
@@ -51,6 +52,8 @@ export function TryOnHistory({ isSubscribed, favorites, onToggleFavorite, credit
   const [page, setPage] = useState(0);
   const [selectedItem, setSelectedItem] = useState<HistoryItem | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [showSceneSelector, setShowSceneSelector] = useState(false);
+  const [pendingVideoItem, setPendingVideoItem] = useState<HistoryItem | null>(null);
 
   const { startVideoGeneration, isGeneratingVideo } = useVideoGeneration();
 
@@ -192,7 +195,7 @@ export function TryOnHistory({ isSubscribed, favorites, onToggleFavorite, credit
     }
   };
 
-  // Generate video from history item
+  // Generate video from history item - show scene selector first
   const generateVideo = (item: HistoryItem) => {
     // Check credits before generating video
     const hasEnoughCredits = credits && credits.credits_balance >= CREDIT_COSTS.video_generation;
@@ -206,20 +209,31 @@ export function TryOnHistory({ isSubscribed, favorites, onToggleFavorite, credit
       return;
     }
 
-    const imageData = item.result_base64 || item.result_url;
+    // Store the item and show scene selector
+    setPendingVideoItem(item);
+    setShowSceneSelector(true);
+    setSelectedItem(null); // Close the modal
+  };
+
+  // Handle scene selection and start video generation
+  const handleSceneSelect = (sceneId: string) => {
+    if (!pendingVideoItem) return;
+
+    const imageData = pendingVideoItem.result_base64 || pendingVideoItem.result_url;
     if (!imageData) return;
 
-    const dressInfo = getDressInfo(item);
+    const dressInfo = getDressInfo(pendingVideoItem);
 
     // Create a minimal gown object for the video generation widget display
     const gown = {
-      id: item.dress_id,
+      id: pendingVideoItem.dress_id,
       name: dressInfo.name,
       image_url: dressInfo.image || imageData,
     } as Gown;
 
-    startVideoGeneration(gown, imageData);
-    setSelectedItem(null); // Close the modal
+    setShowSceneSelector(false);
+    setPendingVideoItem(null);
+    startVideoGeneration(gown, imageData, sceneId);
   };
 
   useEffect(() => {
@@ -445,6 +459,17 @@ export function TryOnHistory({ isSubscribed, favorites, onToggleFavorite, credit
           isDeleting={deletingId === selectedItem.id}
         />
       )}
+
+      {/* Scene Selector Modal */}
+      <SceneSelector
+        open={showSceneSelector}
+        onOpenChange={(open) => {
+          setShowSceneSelector(open);
+          if (!open) setPendingVideoItem(null);
+        }}
+        onSelectScene={handleSceneSelect}
+        isGenerating={isGeneratingVideo}
+      />
     </div>
   );
 }

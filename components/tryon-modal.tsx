@@ -22,6 +22,7 @@ import { useVideoGeneration } from '@/components/video-generation-provider';
 import { useTryOnGeneration } from '@/components/tryon-generation-provider';
 import { CreditBadge } from '@/components/credit-display';
 import { CREDIT_COSTS, type UserCredits } from '@/lib/usage-tracking';
+import { SceneSelector } from '@/components/scene-selector';
 
 interface TryOnModalProps {
   isOpen: boolean;
@@ -54,6 +55,7 @@ export function TryOnModal({
 }: TryOnModalProps) {
   const [showVideoPlayer, setShowVideoPlayer] = useState(false);
   const [hasStartedGeneration, setHasStartedGeneration] = useState(false);
+  const [showSceneSelector, setShowSceneSelector] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const {
@@ -132,7 +134,15 @@ export function TryOnModal({
 
     if (!currentTryOnResult || !gown) return;
 
-    startVideoGeneration(gown, currentTryOnResult, devBypassCredits);
+    // Show scene selector instead of generating directly
+    setShowSceneSelector(true);
+  };
+
+  // Handle scene selection and start video generation
+  const handleSceneSelect = (sceneId: string) => {
+    if (!currentTryOnResult || !gown) return;
+    setShowSceneSelector(false);
+    startVideoGeneration(gown, currentTryOnResult, sceneId, devBypassCredits);
   };
 
   // Download result
@@ -203,6 +213,18 @@ export function TryOnModal({
   if (!isOpen || !gown) return null;
 
   const needsPhoto = !userPhoto;
+
+  // Scene selector modal
+  if (showSceneSelector) {
+    return (
+      <SceneSelector
+        open={showSceneSelector}
+        onOpenChange={setShowSceneSelector}
+        onSelectScene={handleSceneSelect}
+        isGenerating={isGeneratingVideo}
+      />
+    );
+  }
 
   // Determine video button state
   const videoButtonDisabled = !currentTryOnResult || isGeneratingVideo;

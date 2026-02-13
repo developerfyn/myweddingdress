@@ -6,20 +6,14 @@ import { checkVideoGenerationRateLimit, checkGlobalRateLimit } from '@/lib/rate-
 import { validateBase64Image } from '@/lib/image-validation';
 import { verifyRequestFromHeaders } from '@/lib/request-verification';
 import { performAbuseCheck, logAbuse, getClientIp, tryAutoBlock } from '@/lib/abuse-detection';
+import { getSceneById, VIDEO_NEGATIVE_PROMPT } from '@/lib/video-scenes';
 
 // Configure FAL.ai client
 fal.config({
   credentials: process.env.FAL_KEY,
 });
 
-// Bridal fitting room video prompt for wedding dress try-on
-const VIDEO_PROMPT = `The model in the image performs a slow, elegant 360-degree turn in place in a bridal fitting room, showcasing every angle of the wedding dress. She turns steadily and gracefully, revealing the front, side profile, back details, and returning to face the camera. The dress fabric flows and catches the light as she turns.
-
-The setting is a warm bridal fitting room with soft curtains, a large mirror visible in the background, and warm ambient lighting. The mood is intimate and personal, like a private bridal appointment.
-
-Lighting is soft and warm, flattering skin tones. The model's expression is natural and joyful — a genuine smile, like she just found her dress. The camera is static and steady at waist height, framing the full body and dress.`;
-
-const NEGATIVE_PROMPT = 'blur, distort, low quality, exaggerated movement, face morphing, face change, cartoon, anime, disfigured, deformed, stiff, robotic, multiple people';
+// Video prompts are now loaded from lib/video-scenes.ts based on user selection
 
 // Helper to format duration
 function formatDuration(ms: number): string {
@@ -164,8 +158,9 @@ export async function POST(request: NextRequest) {
     // Step 1: Parse request
     const parseStart = performance.now();
     let image: string;
+    let scene: string;
     try {
-      ({ image } = await request.json());
+      ({ image, scene } = await request.json());
     } catch {
       // Refund credits on parse error
       if (creditsDeducted) {
@@ -194,6 +189,35 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Step 1.2: Validate scene selection
+    if (!scene) {
+      console.log(`[${requestId}] ❌ Error: No scene selected`);
+      if (creditsDeducted) {
+        await refundCredits(supabase, userId, 'video_generation', requestId);
+        await logUsageFailure(supabase, requestId, 'Scene is required', performance.now() - startTime);
+        console.log(`[${requestId}] 💸 Credits refunded due to missing scene`);
+      }
+      return NextResponse.json(
+        { error: 'Please select a scene for your video' },
+        { status: 400 }
+      );
+    }
+
+    const selectedScene = getSceneById(scene);
+    if (!selectedScene) {
+      console.log(`[${requestId}] ❌ Error: Invalid scene "${scene}"`);
+      if (creditsDeducted) {
+        await refundCredits(supabase, userId, 'video_generation', requestId);
+        await logUsageFailure(supabase, requestId, `Invalid scene: ${scene}`, performance.now() - startTime);
+        console.log(`[${requestId}] 💸 Credits refunded due to invalid scene`);
+      }
+      return NextResponse.json(
+        { error: 'Invalid scene selected' },
+        { status: 400 }
+      );
+    }
+    console.log(`[${requestId}] ✅ Step 1.2: Scene selected: ${selectedScene.name}`);
 
     // Step 1.4: Handle proxy URLs - convert to base64
     let processedImage = image;
@@ -309,10 +333,10 @@ export async function POST(request: NextRequest) {
     try {
       result = await fal.subscribe(modelId, {
         input: {
-          prompt: VIDEO_PROMPT,
+          prompt: selectedScene.prompt,
           image_url: imageUrl,
           duration: '5',
-          negative_prompt: NEGATIVE_PROMPT,
+          negative_prompt: VIDEO_NEGATIVE_PROMPT,
           cfg_scale: 0.5,
         },
         logs: true,

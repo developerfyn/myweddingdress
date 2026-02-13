@@ -27,6 +27,7 @@ interface VideoGenerationContextValue {
   startVideoGeneration: (
     gown: Gown,
     tryOnResult: string,
+    scene: string,
     devBypassCredits?: boolean
   ) => void;
   dismissVideo: () => void;
@@ -95,7 +96,7 @@ export function VideoGenerationProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const startVideoGeneration = useCallback(
-    (gown: Gown, tryOnResult: string, devBypassCredits?: boolean) => {
+    (gown: Gown, tryOnResult: string, scene: string, devBypassCredits?: boolean) => {
       // Clear previous state
       setVideoJobGown(gown);
       setVideoJobTryOnResult(tryOnResult);
@@ -118,7 +119,7 @@ export function VideoGenerationProvider({ children }: { children: ReactNode }) {
           const response = await fetch('/api/generate-video', {
             method: 'POST',
             headers,
-            body: JSON.stringify({ image: tryOnResult }),
+            body: JSON.stringify({ image: tryOnResult, scene }),
           });
 
           const data = await response.json();
