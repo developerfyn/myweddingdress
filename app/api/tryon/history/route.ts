@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase-server';
+import { checkRateLimit } from '@/lib/rate-limiter';
 
 export async function GET(request: NextRequest) {
   const requestId = `history-${Date.now()}`;
@@ -21,6 +22,15 @@ export async function GET(request: NextRequest) {
     }
 
     console.log(`[${requestId}] ✅ User authenticated: ${user.email}`);
+
+    // Rate limit: 30 requests per minute
+    const rateLimit = checkRateLimit(user.id, 'tryon_history', 30, 60000);
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests' },
+        { status: 429, headers: { 'Retry-After': String(rateLimit.resetInSeconds) } }
+      );
+    }
 
     // Get and validate pagination params
     const { searchParams } = new URL(request.url);
@@ -108,6 +118,15 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
+      );
+    }
+
+    // Rate limit: 20 deletes per minute
+    const rateLimit = checkRateLimit(user.id, 'tryon_history_delete', 20, 60000);
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests' },
+        { status: 429, headers: { 'Retry-After': String(rateLimit.resetInSeconds) } }
       );
     }
 

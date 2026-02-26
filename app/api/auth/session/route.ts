@@ -1,8 +1,27 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { checkRateLimit } from '@/lib/rate-limiter';
 
-export async function GET() {
+// Extract IP for rate limiting unauthenticated requests
+function getClientIp(request: NextRequest): string {
+  return request.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
+         request.headers.get('x-real-ip') ||
+         request.headers.get('cf-connecting-ip') ||
+         'unknown';
+}
+
+export async function GET(request: NextRequest) {
+  // Rate limit by IP: 60 requests per minute (session checks happen frequently)
+  const clientIp = getClientIp(request);
+  const rateLimit = checkRateLimit(clientIp, 'auth_session', 60, 60000);
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { error: 'Too many requests' },
+      { status: 429, headers: { 'Retry-After': String(rateLimit.resetInSeconds) } }
+    );
+  }
+
   const cookieStore = await cookies();
 
   const supabase = createServerClient(

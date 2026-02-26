@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createServerSupabaseClient } from '@/lib/supabase-server';
+import { checkRateLimit } from '@/lib/rate-limiter';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -7,6 +9,26 @@ export async function GET(request: NextRequest) {
 
   if (!url) {
     return NextResponse.json({ error: 'Missing url parameter' }, { status: 400 });
+  }
+
+  // Authenticate user (video downloads should require login)
+  const supabase = await createServerSupabaseClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    return NextResponse.json(
+      { error: 'Please log in to download videos' },
+      { status: 401 }
+    );
+  }
+
+  // Rate limit: 10 downloads per minute
+  const rateLimit = checkRateLimit(user.id, 'download_video', 10, 60000);
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { error: 'Too many download requests' },
+      { status: 429, headers: { 'Retry-After': String(rateLimit.resetInSeconds) } }
+    );
   }
 
   // Validate URL is from fal.media (security: don't allow arbitrary URL fetching)

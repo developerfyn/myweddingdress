@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { createServerSupabaseClient } from '@/lib/supabase-server';
+import { checkRateLimit } from '@/lib/rate-limiter';
 
 export async function POST() {
   try {
@@ -30,6 +31,15 @@ export async function POST() {
     }
 
     console.log(`[Stripe] Creating checkout for user ${user.id}`);
+
+    // Rate limit: 5 checkout attempts per minute (prevent Stripe API spam)
+    const rateLimit = checkRateLimit(user.id, 'stripe_checkout', 5, 60000);
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: 'Too many checkout attempts. Please wait a moment.' },
+        { status: 429, headers: { 'Retry-After': String(rateLimit.resetInSeconds) } }
+      );
+    }
 
     // Check if user already has an active subscription
     const { data: existingSub, error: subError } = await supabase

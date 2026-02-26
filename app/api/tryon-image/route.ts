@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase-server';
+import { checkRateLimit } from '@/lib/rate-limiter';
 
 /**
  * GET /api/tryon-image?id={cacheId}
@@ -55,6 +56,15 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         { error: 'Access denied' },
         { status: 403 }
+      );
+    }
+
+    // Rate limit: 120 image requests per minute (generous for gallery browsing)
+    const rateLimit = checkRateLimit(user.id, 'tryon_image', 120, 60000);
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests' },
+        { status: 429, headers: { 'Retry-After': String(rateLimit.resetInSeconds) } }
       );
     }
 
