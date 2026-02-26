@@ -144,6 +144,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           fetchUserData(session.user.id);
 
           // Track signup with AppsFlyer
+          console.log('[AppsFlyer] SIGNED_IN event, window.AF:', !!window.AF);
           if (typeof window !== 'undefined' && window.AF) {
             window.AF('pba', 'setCustomerUserId', session.user.id);
             window.AF('pba', 'event', {
@@ -153,6 +154,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 af_registration_method: session.user.app_metadata?.provider || 'email',
               },
             });
+            console.log('[AppsFlyer] Signup event sent for user:', session.user.id);
+          } else {
+            console.log('[AppsFlyer] window.AF not available at SIGNED_IN');
           }
         } else if (event === 'SIGNED_OUT') {
           setUser(null);

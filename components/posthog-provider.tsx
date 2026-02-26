@@ -11,6 +11,7 @@ if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_POSTHOG_KEY) {
     person_profiles: 'identified_only',
     capture_pageview: true,
     capture_pageleave: true,
+    advanced_disable_feature_flags: true, // Disable feature flags to avoid 401 errors
   });
 }
 
