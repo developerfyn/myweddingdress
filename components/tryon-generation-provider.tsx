@@ -16,6 +16,12 @@ import { toast } from 'sonner';
 import { TryOnResultModal } from '@/components/tryon-result-modal';
 import { cn } from '@/lib/utils';
 
+declare global {
+  interface Window {
+    AF?: (command: string, ...args: any[]) => void;
+  }
+}
+
 // =============================================================================
 // Types
 // =============================================================================
@@ -275,6 +281,19 @@ export function TryOnGenerationProvider({ children }: { children: ReactNode }) {
               status: 'completed',
               result: data.image,
             });
+
+            // Track try-on completion with AppsFlyer
+            if (typeof window !== 'undefined' && window.AF) {
+              window.AF('pba', 'event', {
+                eventType: 'EVENT',
+                eventName: 'af_content_view',
+                eventValue: {
+                  af_content_type: 'tryon',
+                  af_content_id: gown.id,
+                  af_content: gown.name,
+                },
+              });
+            }
 
             // Show toast if minimized
             if (isMinimizedRef.current) {
