@@ -13,11 +13,22 @@ export default function ForgotPasswordPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [email, setEmail] = useState('');
+  // Honeypot field - should always be empty (bots fill it, humans don't see it)
+  const [phone, setPhone] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setIsLoading(true);
+
+    // Honeypot check - if filled, it's a bot
+    if (phone) {
+      // Silently pretend success to confuse bots
+      console.log('[ForgotPassword] Honeypot triggered - bot detected');
+      setIsLoading(false);
+      setSuccess(true);
+      return;
+    }
 
     try {
       const supabase = createClient();
@@ -104,6 +115,20 @@ export default function ForgotPasswordPage() {
               {error}
             </div>
           )}
+
+          {/* Honeypot field - hidden from humans, catches bots */}
+          <div className="absolute -left-[9999px]" aria-hidden="true">
+            <label htmlFor="phone">Phone</label>
+            <input
+              type="text"
+              id="phone"
+              name="phone"
+              tabIndex={-1}
+              autoComplete="off"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
+          </div>
 
           {/* Email */}
           <div className="space-y-2">

@@ -63,6 +63,8 @@ function LoginContent() {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
+    // Honeypot field - should always be empty (bots fill it, humans don't see it)
+    company: '',
   });
 
   const handleGoogleSignIn = async () => {
@@ -116,6 +118,15 @@ function LoginContent() {
     e.preventDefault();
     setError(null);
     setIsLoading(true);
+
+    // Honeypot check - if filled, it's a bot
+    if (formData.company) {
+      // Silently reject but show generic error to confuse bots
+      console.log('[Login] Honeypot triggered - bot detected');
+      setError('Invalid credentials');
+      setIsLoading(false);
+      return;
+    }
 
     try {
       const supabase = createClient();
@@ -258,6 +269,22 @@ function LoginContent() {
                 {error}
               </div>
             )}
+
+            {/* Honeypot field - hidden from humans, catches bots */}
+            <div className="absolute -left-[9999px]" aria-hidden="true">
+              <label htmlFor="company">Company</label>
+              <input
+                type="text"
+                id="company"
+                name="company"
+                tabIndex={-1}
+                autoComplete="off"
+                value={formData.company}
+                onChange={(e) =>
+                  setFormData({ ...formData, company: e.target.value })
+                }
+              />
+            </div>
 
             {/* Email */}
             <div className="space-y-2">

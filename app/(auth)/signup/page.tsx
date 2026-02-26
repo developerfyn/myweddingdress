@@ -60,6 +60,8 @@ export default function SignUpPage() {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
+    // Honeypot field - should always be empty (bots fill it, humans don't see it)
+    website: '',
   });
 
   const passwordRequirements = [
@@ -113,6 +115,15 @@ export default function SignUpPage() {
     e.preventDefault();
     setError(null);
     setIsLoading(true);
+
+    // Honeypot check - if filled, it's a bot
+    if (formData.website) {
+      // Silently reject but pretend success to confuse bots
+      console.log('[Signup] Honeypot triggered - bot detected');
+      setIsLoading(false);
+      setSuccess(true);
+      return;
+    }
 
     if (!allRequirementsMet) {
       setError('Please meet all password requirements');
@@ -246,6 +257,22 @@ export default function SignUpPage() {
                 {error}
               </div>
             )}
+
+            {/* Honeypot field - hidden from humans, catches bots */}
+            <div className="absolute -left-[9999px]" aria-hidden="true">
+              <label htmlFor="website">Website</label>
+              <input
+                type="text"
+                id="website"
+                name="website"
+                tabIndex={-1}
+                autoComplete="off"
+                value={formData.website}
+                onChange={(e) =>
+                  setFormData({ ...formData, website: e.target.value })
+                }
+              />
+            </div>
 
             {/* Email */}
             <div className="space-y-2">
