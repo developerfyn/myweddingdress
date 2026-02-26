@@ -5,6 +5,7 @@ import { AuthProvider } from '@/components/auth-provider'
 import { TryOnGenerationProvider } from '@/components/tryon-generation-provider'
 import { VideoGenerationProvider } from '@/components/video-generation-provider'
 import { PostHogProvider } from '@/components/posthog-provider'
+import { AppsFlyerProvider } from '@/components/appsflyer-provider'
 import { Toaster } from '@/components/ui/sonner'
 import './globals.css'
 
@@ -40,7 +41,9 @@ export default function RootLayout({
           <TryOnGenerationProvider>
             <VideoGenerationProvider>
               <PostHogProvider>
-                {children}
+                <AppsFlyerProvider>
+                  {children}
+                </AppsFlyerProvider>
               </PostHogProvider>
             </VideoGenerationProvider>
           </TryOnGenerationProvider>
