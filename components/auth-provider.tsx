@@ -4,6 +4,12 @@ import { createContext, useContext, useEffect, useState, useCallback } from 'rea
 import { User } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase';
 
+declare global {
+  interface Window {
+    AF?: (command: string, ...args: any[]) => void;
+  }
+}
+
 export interface Profile {
   id: string;
   email: string | null;
@@ -136,6 +142,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(session.user);
           setIsLoading(false);
           fetchUserData(session.user.id);
+
+          // Track signup with AppsFlyer
+          if (typeof window !== 'undefined' && window.AF) {
+            window.AF('pba', 'setCustomerUserId', session.user.id);
+            window.AF('pba', 'event', {
+              eventType: 'EVENT',
+              eventName: 'af_complete_registration',
+              eventValue: {
+                af_registration_method: session.user.app_metadata?.provider || 'email',
+              },
+            });
+          }
         } else if (event === 'SIGNED_OUT') {
           setUser(null);
           setProfile(null);
