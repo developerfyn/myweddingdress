@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { createClient } from '@supabase/supabase-js';
 import Stripe from 'stripe';
+import { trackPurchase } from '@/lib/appsflyer';
 
 // Credits for quarterly plan
 const QUARTERLY_CREDITS = 400;
@@ -129,6 +130,15 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
     console.error('[Webhook] Failed to create subscription:', error);
     throw error;
   }
+
+  // Track purchase with AppsFlyer S2S
+  const amountTotal = session.amount_total ? session.amount_total / 100 : 0;
+  await trackPurchase(
+    userId,
+    amountTotal,
+    session.currency?.toUpperCase() || 'USD',
+    session.id
+  );
 
   console.log(`[Webhook] Subscription activated for user ${userId} with ${QUARTERLY_CREDITS} credits`);
 }
