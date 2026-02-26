@@ -28,7 +28,7 @@ export async function middleware(request: NextRequest) {
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, {
               ...options,
-              httpOnly: false,
+              httpOnly: true,  // Security fix: prevent XSS session hijacking
             })
           );
         },

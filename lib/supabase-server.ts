@@ -17,7 +17,7 @@ export async function createServerSupabaseClient() {
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, {
                 ...options,
-                httpOnly: false,
+                httpOnly: true,  // Security fix: prevent XSS session hijacking
               })
             );
           } catch {

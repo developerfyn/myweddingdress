@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase-server';
 import { getUserCredits, updateUserTimezone, completeOnboarding } from '@/lib/usage-tracking';
+import { checkRateLimit } from '@/lib/rate-limiter';
 
 /**
  * GET /api/credits
@@ -20,6 +21,15 @@ export async function GET() {
       return NextResponse.json(
         { success: false, error: 'Not authenticated' },
         { status: 401 }
+      );
+    }
+
+    // Rate limit: 60 requests per minute (generous for UI polling)
+    const rateLimit = checkRateLimit(user.id, 'credits_get', 60, 60000);
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { success: false, error: 'Too many requests' },
+        { status: 429, headers: { 'Retry-After': String(rateLimit.resetInSeconds) } }
       );
     }
 
@@ -64,6 +74,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { success: false, error: 'Not authenticated' },
         { status: 401 }
+      );
+    }
+
+    // Rate limit: 10 requests per minute (timezone/onboarding updates are rare)
+    const rateLimit = checkRateLimit(user.id, 'credits_post', 10, 60000);
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { success: false, error: 'Too many requests' },
+        { status: 429, headers: { 'Retry-After': String(rateLimit.resetInSeconds) } }
       );
     }
 
