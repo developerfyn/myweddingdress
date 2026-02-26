@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -20,12 +20,23 @@ import {
 export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getUser().then(({ data: { user } }) => {
       setIsLoggedIn(!!user);
     });
+  }, []);
+
+  // Force video play on mobile (iOS Safari workaround)
+  useEffect(() => {
+    const video = videoRef.current;
+    if (video) {
+      video.play().catch(() => {
+        // Autoplay was prevented, user interaction needed
+      });
+    }
   }, []);
 
   return (
@@ -347,10 +358,12 @@ export default function LandingPage() {
             {/* Video */}
             <div className="rounded-2xl overflow-hidden border border-border shadow-lg max-w-xs mx-auto">
               <video
+                ref={videoRef}
                 autoPlay
                 loop
                 muted
                 playsInline
+                preload="auto"
                 className="w-full h-auto"
               >
                 <source src="/assets/home-screen-video.mp4" type="video/mp4" />
