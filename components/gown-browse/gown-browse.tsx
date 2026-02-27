@@ -99,7 +99,7 @@ export function GownBrowse({
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header with Neckline Pills */}
-        <div className="p-6 border-b border-border space-y-4">
+        <div className="pl-14 pr-4 py-4 md:p-6 border-b border-border space-y-4">
           {/* Top Row: Results count and Mobile Filter */}
           <div className="flex items-center justify-between gap-4">
             <p className="text-sm text-muted-foreground">
