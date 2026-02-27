@@ -93,7 +93,7 @@ export async function getUserCredits(
     .single<GetUserCreditsResponse>();
 
   if (error) {
-    console.error('[Credits] Failed to get user credits:', error.message);
+    console.error('[Credits] Failed to get user credits:', error.message, error.code, error.details, error.hint);
     return null;
   }
 

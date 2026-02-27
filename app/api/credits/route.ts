@@ -34,9 +34,12 @@ export async function GET() {
     }
 
     // Get credits
+    console.log('[API/credits] Fetching credits for user:', user.id);
     const credits = await getUserCredits(supabase, user.id);
+    console.log('[API/credits] Credits result:', credits);
 
     if (!credits) {
+      console.error('[API/credits] getUserCredits returned null for user:', user.id);
       return NextResponse.json(
         { success: false, error: 'Failed to fetch credits' },
         { status: 500 }

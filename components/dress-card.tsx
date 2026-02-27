@@ -26,16 +26,7 @@ export function DressCard({ dress, onClick }: DressCardProps) {
         className="object-cover"
         sizes="140px"
       />
-      
-      {/* PRO Badge */}
-      {dress.isPro && (
-        <div className="absolute top-2 right-2">
-          <span className="px-2 py-0.5 text-[10px] font-semibold text-white rounded-full bg-gradient-to-r from-[#FF6B9D] to-[#C86DD7]">
-            PRO
-          </span>
-        </div>
-      )}
-      
+
       {/* Dress Name */}
       <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
         <p className="text-white text-sm font-serif text-left drop-shadow-md">

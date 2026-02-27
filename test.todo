@@ -5,11 +5,33 @@ my wedding dress:
     ✔ implement credit system @started(26-02-09 14:47) @done(26-02-09 17:30) @lasted(2h43m56s)
     ✔ stripe integration @started(26-02-09 17:31) @done(26-02-10 17:07) @lasted(23h36m48s)
 
-    ☐ optimise for web
-    ☐ optimise for mobile
-    ☐ review completeness of this project
-    ☐ review everything to ensure we can deploy onto production smoothly
+    ✔ optimise for web @done(26-02-10 17:58)
+    ✔ optimise for mobile @done(26-02-10 17:58)
+    ✔ review completeness of this project @done(26-02-11 13:38)
+    ✔ review everything to ensure we can deploy onto production smoothly @done(26-02-11 13:38)
 
+
+
+promote myweddingdress.app:
+        ✔ See how other web applications promote. @started(26-02-11 10:17) @done(26-02-11 13:38) @lasted(3h21m54s)
+        ✔ Create artwork for myweddingdress.app @done(26-02-11 17:44)
+        ✔ Create two TikTok videos for my wedding dress app @done(26-02-11 17:44)
+        ☐ TikTok Ads: After ~50 conversions, switch to Conversions campaign and set target CPA
+        ☐ TikTok Ads: Set up TikTok Pixel (NEXT_PUBLIC_TIKTOK_PIXEL_ID in .env.local)
+        ☐ Learn how to do SEO    
+        ☐ Do SEO for my wedding dress app
+        ☐ 
+        ☐ 
+        ☐ 1. **Add social sharing buttons** to try-on results (easy viral loop)
+        ☐ 2. **Create 3-5 TikTok videos** showing the app in action
+        ☐ 3. **Reach out to 10 wedding micro-influencers** offering free access
+        ☐ 4. **Set up a referral program** (give X credits, get X credits)
+        ☐ 
+        
+        ☐ 
+        ☐ 
+        ☐ 
+        ☐ 
 
  promote fitted ai:
     ☐ apply new simba number @started(26-02-06 12:15)
