@@ -440,7 +440,7 @@ export function PhotoSelectModal({
                     className={cn(
                       'absolute top-1 right-1 p-1.5 rounded-full transition-all',
                       'bg-black/50 hover:bg-red-500',
-                      'opacity-0 group-hover:opacity-100',
+                      'opacity-100 md:opacity-0 md:group-hover:opacity-100',
                       deletingIndex === index && 'opacity-100'
                     )}
                   >
