@@ -44,21 +44,21 @@ export function GownDetailModal({
         </button>
 
         {/* Content */}
-        <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
+        <div className="flex flex-col md:flex-row flex-1 overflow-y-auto">
           {/* Image */}
-          <div className="relative w-full md:w-1/2 bg-secondary flex-shrink-0 flex items-center justify-center p-6 pt-14">
+          <div className="relative w-full md:w-1/2 bg-secondary flex-shrink-0 flex items-center justify-center p-4 pt-12 md:p-6 md:pt-14">
             <Image
               src={gown.image_url || '/placeholder.svg'}
               alt={gown.name}
               width={400}
               height={600}
-              className="object-contain max-h-[75vh] w-auto rounded-lg"
+              className="object-contain max-h-[50vh] md:max-h-[75vh] w-auto rounded-lg"
               sizes="(max-width: 768px) 100vw, 50vw"
             />
           </div>
 
           {/* Details */}
-          <div className="flex-1 p-6 flex flex-col">
+          <div className="flex-1 p-4 md:p-6 flex flex-col">
             <div className="flex-1">
               <h2 className="font-serif text-2xl text-foreground mb-2">
                 {gown.name}
