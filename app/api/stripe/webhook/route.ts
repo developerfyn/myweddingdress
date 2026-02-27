@@ -176,7 +176,7 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
       .from('subscriptions')
       .select('credits_balance')
       .eq('user_id', userId)
-      .single();
+      .maybeSingle();
 
     // Add new credits (with rollover from previous period, max 2x allocation)
     const rolloverCredits = Math.min(currentSub?.credits_balance || 0, QUARTERLY_CREDITS);

@@ -214,10 +214,17 @@ export function UploadModal({ isOpen, onClose, onUpload, existingPhotosCount = 0
         if (uploadErr) throw uploadErr;
 
         // Record in user_photos table (storage_path only, no public_url for private bucket)
-        await supabase.from('user_photos').insert({
+        const { error: insertError } = await supabase.from('user_photos').insert({
           user_id: user.id,
           storage_path: data.path,
         });
+
+        // If database insert fails, clean up the uploaded file
+        if (insertError) {
+          console.error('Failed to save photo record:', insertError);
+          await supabase.storage.from('user-photos').remove([data.path]);
+          throw new Error('Failed to save photo. Please try again.');
+        }
 
         setUploadProgress(Math.round(((i + 1) / validPhotos.length) * 100));
       }

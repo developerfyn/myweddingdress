@@ -16,8 +16,9 @@ promote myweddingdress.app:
         ✔ See how other web applications promote. @started(26-02-11 10:17) @done(26-02-11 13:38) @lasted(3h21m54s)
         ✔ Create artwork for myweddingdress.app @done(26-02-11 17:44)
         ✔ Create two TikTok videos for my wedding dress app @done(26-02-11 17:44)
-        ☐ TikTok Ads: After ~50 conversions, switch to Conversions campaign and set target CPA
-        ☐ TikTok Ads: Set up TikTok Pixel (NEXT_PUBLIC_TIKTOK_PIXEL_ID in .env.local)
+        ✔ facebook ads
+        TikTok Ads: After ~50 conversions, switch to Conversions campaign and set target CPA @done(26-02-27 02:35)
+        ✔ TikTok Ads: Set up TikTok Pixel (NEXT_PUBLIC_TIKTOK_PIXEL_ID in .env.local) @done(26-02-27 02:35)
         ☐ Learn how to do SEO    
         ☐ Do SEO for my wedding dress app
         ☐ 

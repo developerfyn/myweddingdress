@@ -62,18 +62,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     try {
       // Fetch profile and subscription in parallel
+      // Use maybeSingle() to return null instead of error when no rows exist
       const [profileResult, subscriptionResult] = await Promise.all([
-        supabase.from('profiles').select('*').eq('id', userId).single(),
-        supabase.from('subscriptions').select('*').eq('user_id', userId).single(),
+        supabase.from('profiles').select('*').eq('id', userId).maybeSingle(),
+        supabase.from('subscriptions').select('*').eq('user_id', userId).maybeSingle(),
       ]);
 
-      if (profileResult.error) {
+      // Profile might not exist yet (new user) - that's OK
+      if (profileResult.error && profileResult.error.code !== 'PGRST116') {
         console.error('Error fetching profile:', profileResult.error);
       } else if (profileResult.data) {
         setProfile(profileResult.data);
       }
 
-      if (subscriptionResult.error) {
+      // Subscription might not exist (free user) - that's OK
+      if (subscriptionResult.error && subscriptionResult.error.code !== 'PGRST116') {
         console.error('Error fetching subscription:', subscriptionResult.error);
       } else if (subscriptionResult.data) {
         setSubscription(subscriptionResult.data);

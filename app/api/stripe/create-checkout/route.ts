@@ -69,7 +69,7 @@ export async function POST() {
       .from('profiles')
       .select('stripe_customer_id')
       .eq('id', user.id)
-      .single();
+      .maybeSingle();
 
     if (profile?.stripe_customer_id) {
       // Verify customer still exists in Stripe

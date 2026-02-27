@@ -162,10 +162,15 @@ export async function fetchGownById(
       neckline:necklines(*)
     `)
     .eq('id', gownId)
-    .single();
+    .maybeSingle();
 
   if (error) {
     console.error('Error fetching gown:', error);
+    return null;
+  }
+
+  // gown not found is not an error, just return null
+  if (!data) {
     return null;
   }
 
