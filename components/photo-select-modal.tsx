@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback } from 'react';
 import Image from 'next/image';
-import { X, Plus, Check, Upload, Loader2, AlertCircle, Trash2, Lightbulb, ChevronDown, ChevronUp } from 'lucide-react';
+import { X, Plus, Check, Upload, Loader2, AlertCircle, Trash2, Lightbulb, ChevronDown, ChevronUp, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { createClient } from '@/lib/supabase';
 import { useAuth } from '@/components/auth-provider';
@@ -39,6 +39,8 @@ export function PhotoSelectModal({
 
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isValidating, setIsValidating] = useState(false);
+  const [validationStatus, setValidationStatus] = useState<'idle' | 'checking' | 'valid' | 'invalid'>('idle');
   const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number } | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [deletingIndex, setDeletingIndex] = useState<number | null>(null);
@@ -91,6 +93,46 @@ export function PhotoSelectModal({
     return null;
   };
 
+  // Convert file to base64
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  // Validate photo with Google Vision API
+  const validatePhotoWithVision = async (
+    file: File
+  ): Promise<{ valid: boolean; error?: string }> => {
+    try {
+      const base64 = await fileToBase64(file);
+      const response = await fetch('/api/validate-photo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: base64 }),
+      });
+
+      if (!response.ok) {
+        // If validation service is unavailable, allow upload
+        if (response.status === 503) {
+          return { valid: true };
+        }
+        const data = await response.json();
+        return { valid: false, error: data.error || 'Validation failed' };
+      }
+
+      const data = await response.json();
+      return { valid: data.valid, error: data.reason };
+    } catch {
+      // If validation fails due to network error, allow upload
+      console.warn('Photo validation failed, allowing upload');
+      return { valid: true };
+    }
+  };
+
   // Upload multiple files
   const uploadFiles = useCallback(async (files: File[]) => {
     if (!user || files.length === 0) return;
@@ -102,22 +144,47 @@ export function PhotoSelectModal({
       setError(`Only ${availableSlots} more photo(s) can be added (max ${MAX_PHOTOS} total)`);
     }
 
-    // Validate all files first
-    const validFiles: File[] = [];
+    // Validate file format/size first
+    const formatValidFiles: File[] = [];
     for (const file of filesToUpload) {
       const validationError = validateFile(file);
       if (validationError) {
         setError(validationError);
         continue;
       }
-      validFiles.push(file);
+      formatValidFiles.push(file);
     }
 
-    if (validFiles.length === 0) return;
+    if (formatValidFiles.length === 0) return;
 
+    // Validate photos with Vision API
+    setIsValidating(true);
+    setValidationStatus('checking');
+    setError(null);
+
+    const validFiles: File[] = [];
+    for (const file of formatValidFiles) {
+      const result = await validatePhotoWithVision(file);
+      if (result.valid) {
+        validFiles.push(file);
+      } else {
+        setError(result.error || 'Photo validation failed');
+        setValidationStatus('invalid');
+      }
+    }
+
+    setIsValidating(false);
+
+    if (validFiles.length === 0) {
+      setValidationStatus('invalid');
+      return;
+    }
+
+    setValidationStatus('valid');
+
+    // Now upload valid files
     setIsUploading(true);
     setUploadProgress({ current: 0, total: validFiles.length });
-    setError(null);
 
     try {
       const supabase = createClient();
@@ -153,6 +220,7 @@ export function PhotoSelectModal({
     } finally {
       setIsUploading(false);
       setUploadProgress(null);
+      setValidationStatus('idle');
     }
   }, [user, onPhotoUploaded, availableSlots]);
 
@@ -390,18 +458,27 @@ export function PhotoSelectModal({
             {canUploadMore && (
               <button
                 onClick={handleUploadClick}
-                disabled={isUploading}
+                disabled={isUploading || isValidating}
                 className={cn(
                   'aspect-[3/4] rounded-xl border-2 border-dashed transition-all',
                   'flex flex-col items-center justify-center gap-2 text-center',
-                  isUploading
+                  isUploading || isValidating
                     ? 'border-primary bg-primary/10 cursor-wait'
                     : isDragging
                     ? 'border-primary bg-primary/10'
+                    : validationStatus === 'valid'
+                    ? 'border-green-500 bg-green-50'
                     : 'border-border hover:border-primary hover:bg-secondary/30'
                 )}
               >
-                {isUploading ? (
+                {isValidating ? (
+                  <>
+                    <Loader2 className="w-6 h-6 text-primary animate-spin" />
+                    <span className="text-xs text-muted-foreground">
+                      Checking photo...
+                    </span>
+                  </>
+                ) : isUploading ? (
                   <>
                     <Loader2 className="w-6 h-6 text-primary animate-spin" />
                     <span className="text-xs text-muted-foreground">
@@ -409,6 +486,11 @@ export function PhotoSelectModal({
                         ? `Uploading ${uploadProgress.current}/${uploadProgress.total}...`
                         : 'Uploading...'}
                     </span>
+                  </>
+                ) : validationStatus === 'valid' ? (
+                  <>
+                    <CheckCircle2 className="w-6 h-6 text-green-500" />
+                    <span className="text-xs text-green-600 font-medium">Photo verified!</span>
                   </>
                 ) : isDragging ? (
                   <>

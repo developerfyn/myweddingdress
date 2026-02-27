@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useState, useRef } from 'react';
-import { X, Upload, CheckCircle, ImagePlus, Loader2, AlertCircle } from 'lucide-react';
+import { X, Upload, CheckCircle, ImagePlus, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { createClient } from '@/lib/supabase';
 import { useAuth } from '@/components/auth-provider';
@@ -17,9 +17,13 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const MAX_FILES = 5;
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/avif'];
 
+type ValidationStatus = 'pending' | 'validating' | 'valid' | 'invalid';
+
 interface FileWithPreview {
   file: File;
   preview: string;
+  validationStatus: ValidationStatus;
+  validationError?: string;
 }
 
 export function UploadModal({ isOpen, onClose, onUpload, existingPhotosCount = 0 }: UploadModalProps) {
@@ -28,6 +32,7 @@ export function UploadModal({ isOpen, onClose, onUpload, existingPhotosCount = 0
 
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isValidating, setIsValidating] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<FileWithPreview[]>([]);
 
   // Calculate total available slots considering existing photos
@@ -46,46 +51,137 @@ export function UploadModal({ isOpen, onClose, onUpload, existingPhotosCount = 0
     return null;
   };
 
-  const handleFiles = useCallback((files: File[]) => {
-    setError(null);
+  // Convert file to base64
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
 
-    setSelectedFiles((prev) => {
-      const availableSlots = totalAvailableSlots - prev.length;
-
-      if (availableSlots <= 0) {
-        setError(`Maximum ${MAX_FILES} photos allowed (you have ${existingPhotosCount} uploaded)`);
-        return prev;
-      }
-
-      const filesToAdd = files.slice(0, availableSlots);
-      const validFiles: FileWithPreview[] = [];
-      const errors: string[] = [];
-
-      filesToAdd.forEach((file) => {
-        const validationError = validateFile(file);
-        if (validationError) {
-          errors.push(validationError);
-        } else {
-          const preview = URL.createObjectURL(file);
-          validFiles.push({ file, preview });
-        }
+  // Validate photo with Google Vision API
+  const validatePhotoWithVision = async (
+    file: File,
+    index: number
+  ): Promise<{ valid: boolean; error?: string }> => {
+    try {
+      const base64 = await fileToBase64(file);
+      const response = await fetch('/api/validate-photo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: base64 }),
       });
 
-      if (errors.length > 0) {
-        setError(errors[0]);
+      if (!response.ok) {
+        // If validation service is unavailable, allow upload
+        if (response.status === 503) {
+          return { valid: true };
+        }
+        const data = await response.json();
+        return { valid: false, error: data.error || 'Validation failed' };
       }
 
-      if (files.length > availableSlots) {
-        setError(`Only ${availableSlots} more photo(s) can be added (max ${MAX_FILES} total)`);
-      }
+      const data = await response.json();
+      return { valid: data.valid, error: data.reason };
+    } catch {
+      // If validation fails due to network error, allow upload
+      console.warn('Photo validation failed, allowing upload');
+      return { valid: true };
+    }
+  };
 
-      return [...prev, ...validFiles];
+  const handleFiles = useCallback(async (files: File[]) => {
+    setError(null);
+
+    const availableSlots = totalAvailableSlots - selectedFiles.length;
+
+    if (availableSlots <= 0) {
+      setError(`Maximum ${MAX_FILES} photos allowed (you have ${existingPhotosCount} uploaded)`);
+      return;
+    }
+
+    const filesToAdd = files.slice(0, availableSlots);
+    const validFiles: FileWithPreview[] = [];
+    const errors: string[] = [];
+
+    filesToAdd.forEach((file) => {
+      const validationError = validateFile(file);
+      if (validationError) {
+        errors.push(validationError);
+      } else {
+        const preview = URL.createObjectURL(file);
+        validFiles.push({ file, preview, validationStatus: 'pending' });
+      }
     });
-  }, [totalAvailableSlots, existingPhotosCount]);
+
+    if (errors.length > 0) {
+      setError(errors[0]);
+    }
+
+    if (files.length > availableSlots) {
+      setError(`Only ${availableSlots} more photo(s) can be added (max ${MAX_FILES} total)`);
+    }
+
+    if (validFiles.length === 0) return;
+
+    // Add files with pending status first
+    setSelectedFiles((prev) => [...prev, ...validFiles]);
+
+    // Then validate each file with Vision API
+    setIsValidating(true);
+    const startIndex = selectedFiles.length;
+
+    for (let i = 0; i < validFiles.length; i++) {
+      const fileIndex = startIndex + i;
+      const fileItem = validFiles[i];
+
+      // Update status to validating
+      setSelectedFiles((prev) => {
+        const updated = [...prev];
+        if (updated[fileIndex]) {
+          updated[fileIndex] = { ...updated[fileIndex], validationStatus: 'validating' };
+        }
+        return updated;
+      });
+
+      const result = await validatePhotoWithVision(fileItem.file, fileIndex);
+
+      // Update with validation result
+      setSelectedFiles((prev) => {
+        const updated = [...prev];
+        if (updated[fileIndex]) {
+          updated[fileIndex] = {
+            ...updated[fileIndex],
+            validationStatus: result.valid ? 'valid' : 'invalid',
+            validationError: result.error,
+          };
+        }
+        return updated;
+      });
+
+      // Show error for invalid photos
+      if (!result.valid && result.error) {
+        setError(result.error);
+      }
+    }
+
+    setIsValidating(false);
+  }, [totalAvailableSlots, existingPhotosCount, selectedFiles.length]);
 
   const handleUpload = async () => {
-    if (selectedFiles.length === 0) {
-      setError('Please select at least one file');
+    // Filter to only valid photos
+    const validPhotos = selectedFiles.filter((f) => f.validationStatus === 'valid');
+
+    if (validPhotos.length === 0) {
+      // Check if there are photos still validating
+      const validatingCount = selectedFiles.filter((f) => f.validationStatus === 'validating' || f.validationStatus === 'pending').length;
+      if (validatingCount > 0) {
+        setError('Please wait for photo validation to complete');
+        return;
+      }
+      setError('Please select at least one valid photo');
       return;
     }
 
@@ -101,8 +197,8 @@ export function UploadModal({ isOpen, onClose, onUpload, existingPhotosCount = 0
     const supabase = createClient();
 
     try {
-      for (let i = 0; i < selectedFiles.length; i++) {
-        const { file } = selectedFiles[i];
+      for (let i = 0; i < validPhotos.length; i++) {
+        const { file } = validPhotos[i];
 
         const fileExt = file.name.split('.').pop();
         const fileName = `${Date.now()}-${i}-${Math.random().toString(36).substring(2)}.${fileExt}`;
@@ -123,7 +219,7 @@ export function UploadModal({ isOpen, onClose, onUpload, existingPhotosCount = 0
           storage_path: data.path,
         });
 
-        setUploadProgress(Math.round(((i + 1) / selectedFiles.length) * 100));
+        setUploadProgress(Math.round(((i + 1) / validPhotos.length) * 100));
       }
 
       // Notify parent to refetch photos with signed URLs
@@ -280,8 +376,35 @@ export function UploadModal({ isOpen, onClose, onUpload, existingPhotosCount = 0
                     <img
                       src={item.preview}
                       alt={`Preview ${index + 1}`}
-                      className="w-full h-full object-cover rounded-xl"
+                      className={cn(
+                        "w-full h-full object-cover rounded-xl",
+                        item.validationStatus === 'invalid' && "opacity-50"
+                      )}
                     />
+                    {/* Validation status overlay */}
+                    {item.validationStatus === 'validating' && (
+                      <div className="absolute inset-0 bg-black/30 rounded-xl flex items-center justify-center">
+                        <div className="bg-white rounded-lg px-2 py-1 flex items-center gap-1.5">
+                          <Loader2 className="w-3 h-3 animate-spin text-primary" />
+                          <span className="text-xs font-medium text-gray-700">Checking...</span>
+                        </div>
+                      </div>
+                    )}
+                    {item.validationStatus === 'valid' && (
+                      <div className="absolute bottom-1 left-1 p-1 rounded-full bg-green-500">
+                        <CheckCircle2 className="w-3 h-3 text-white" />
+                      </div>
+                    )}
+                    {item.validationStatus === 'invalid' && (
+                      <div className="absolute inset-0 bg-red-500/20 rounded-xl flex items-center justify-center">
+                        <div className="bg-white rounded-lg px-2 py-1 max-w-[90%] text-center">
+                          <AlertCircle className="w-3 h-3 text-red-500 mx-auto mb-0.5" />
+                          <span className="text-xs text-red-600 line-clamp-2">
+                            {item.validationError || 'Invalid photo'}
+                          </span>
+                        </div>
+                      </div>
+                    )}
                     <button
                       onClick={() => handleRemoveFile(index)}
                       className="absolute top-1 right-1 p-1.5 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors"
@@ -375,19 +498,23 @@ export function UploadModal({ isOpen, onClose, onUpload, existingPhotosCount = 0
           </button>
           <button
             onClick={() => {
-              if (selectedFiles.length > 0) {
+              const validCount = selectedFiles.filter((f) => f.validationStatus === 'valid').length;
+              if (validCount > 0) {
                 handleUpload();
+              } else if (selectedFiles.length > 0) {
+                // Has files but none valid yet - either validating or invalid
+                return;
               } else {
                 handleClickUploadArea();
               }
             }}
-            disabled={isUploading || totalAvailableSlots <= 0}
+            disabled={isUploading || isValidating || totalAvailableSlots <= 0}
             className={cn(
               'flex-1 py-3 rounded-xl font-medium',
               'bg-gradient-to-r from-[#FF6B9D] to-[#C86DD7] text-white',
               'flex items-center justify-center gap-2',
               'hover:opacity-90 transition-opacity',
-              isUploading && 'opacity-70 cursor-not-allowed'
+              (isUploading || isValidating) && 'opacity-70 cursor-not-allowed'
             )}
           >
             {isUploading ? (
@@ -395,11 +522,38 @@ export function UploadModal({ isOpen, onClose, onUpload, existingPhotosCount = 0
                 <Loader2 className="w-5 h-5 animate-spin" />
                 Uploading {uploadProgress}%
               </>
-            ) : selectedFiles.length > 0 ? (
+            ) : isValidating ? (
               <>
-                <Upload className="w-5 h-5" />
-                Upload {selectedFiles.length} Photo{selectedFiles.length > 1 ? 's' : ''}
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Checking photo...
               </>
+            ) : selectedFiles.length > 0 ? (
+              (() => {
+                const validCount = selectedFiles.filter((f) => f.validationStatus === 'valid').length;
+                const invalidCount = selectedFiles.filter((f) => f.validationStatus === 'invalid').length;
+                if (validCount > 0) {
+                  return (
+                    <>
+                      <Upload className="w-5 h-5" />
+                      Upload {validCount} Photo{validCount > 1 ? 's' : ''}
+                    </>
+                  );
+                } else if (invalidCount > 0) {
+                  return (
+                    <>
+                      <AlertCircle className="w-5 h-5" />
+                      No valid photos
+                    </>
+                  );
+                } else {
+                  return (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Checking...
+                    </>
+                  );
+                }
+              })()
             ) : (
               <>
                 <ImagePlus className="w-5 h-5" />
