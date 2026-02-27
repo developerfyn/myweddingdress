@@ -121,11 +121,7 @@ export default function TryOnPage() {
     registerFavoriteCallbacks({
       isFavorite: (gownId: string) => favorites.includes(gownId),
       onToggle: (gownId: string) => {
-        const newFavorites = favorites.includes(gownId)
-          ? favorites.filter((id) => id !== gownId)
-          : [...favorites, gownId];
-        setFavorites(newFavorites);
-        localStorage.setItem('favorites', JSON.stringify(newFavorites));
+        handleToggleFavorite(gownId);
       },
     });
 
@@ -187,17 +183,50 @@ export default function TryOnPage() {
     }
   }, [credits]);
 
-  // Load saved state from localStorage
+  // Load favorites from database (if logged in) or localStorage
   useEffect(() => {
-    const savedFavorites = localStorage.getItem('favorites');
-    if (savedFavorites) {
-      setFavorites(JSON.parse(savedFavorites));
-    }
+    const loadFavorites = async () => {
+      if (user) {
+        // Load from database for logged-in users
+        const supabase = createClient();
 
-    const savedHistoryFavorites = localStorage.getItem('historyFavorites');
-    if (savedHistoryFavorites) {
-      setHistoryFavorites(JSON.parse(savedHistoryFavorites));
-    }
+        const { data: dbFavorites } = await supabase
+          .from('user_favorites')
+          .select('gown_id')
+          .eq('user_id', user.id);
+
+        if (dbFavorites) {
+          const gownIds = dbFavorites.map(f => f.gown_id);
+          setFavorites(gownIds);
+          // Also update localStorage for offline access
+          localStorage.setItem('favorites', JSON.stringify(gownIds));
+        }
+
+        const { data: dbHistoryFavorites } = await supabase
+          .from('user_history_favorites')
+          .select('history_id')
+          .eq('user_id', user.id);
+
+        if (dbHistoryFavorites) {
+          const historyIds = dbHistoryFavorites.map(f => f.history_id);
+          setHistoryFavorites(historyIds);
+          localStorage.setItem('historyFavorites', JSON.stringify(historyIds));
+        }
+      } else {
+        // Fall back to localStorage for non-logged-in users
+        const savedFavorites = localStorage.getItem('favorites');
+        if (savedFavorites) {
+          setFavorites(JSON.parse(savedFavorites));
+        }
+
+        const savedHistoryFavorites = localStorage.getItem('historyFavorites');
+        if (savedHistoryFavorites) {
+          setHistoryFavorites(JSON.parse(savedHistoryFavorites));
+        }
+      }
+    };
+
+    loadFavorites();
 
     // Studio gowns are stored as full objects now (since we fetch from Supabase)
     const savedStudio = localStorage.getItem('studioGowns');
@@ -209,7 +238,7 @@ export default function TryOnPage() {
         console.error('Failed to parse studio gowns:', e);
       }
     }
-  }, []);
+  }, [user]);
 
   // Load user photos with signed URLs from private bucket
   const fetchUserPhotos = useCallback(async () => {
@@ -285,23 +314,57 @@ export default function TryOnPage() {
   };
 
   // Handle Toggle Favorite (for gowns)
-  const handleToggleFavorite = (gownId: string) => {
-    const newFavorites = favorites.includes(gownId)
+  const handleToggleFavorite = async (gownId: string) => {
+    const isFavorited = favorites.includes(gownId);
+    const newFavorites = isFavorited
       ? favorites.filter((id) => id !== gownId)
       : [...favorites, gownId];
 
     setFavorites(newFavorites);
     localStorage.setItem('favorites', JSON.stringify(newFavorites));
+
+    // Sync to database if logged in
+    if (user) {
+      const supabase = createClient();
+      if (isFavorited) {
+        await supabase
+          .from('user_favorites')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('gown_id', gownId);
+      } else {
+        await supabase
+          .from('user_favorites')
+          .insert({ user_id: user.id, gown_id: gownId });
+      }
+    }
   };
 
   // Handle Toggle History Favorite (for try-on results)
-  const handleToggleHistoryFavorite = (historyId: string) => {
-    const newHistoryFavorites = historyFavorites.includes(historyId)
+  const handleToggleHistoryFavorite = async (historyId: string) => {
+    const isFavorited = historyFavorites.includes(historyId);
+    const newHistoryFavorites = isFavorited
       ? historyFavorites.filter((id) => id !== historyId)
       : [...historyFavorites, historyId];
 
     setHistoryFavorites(newHistoryFavorites);
     localStorage.setItem('historyFavorites', JSON.stringify(newHistoryFavorites));
+
+    // Sync to database if logged in
+    if (user) {
+      const supabase = createClient();
+      if (isFavorited) {
+        await supabase
+          .from('user_history_favorites')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('history_id', historyId);
+      } else {
+        await supabase
+          .from('user_history_favorites')
+          .insert({ user_id: user.id, history_id: historyId });
+      }
+    }
   };
 
   // Handle Try On / Add to Studio
