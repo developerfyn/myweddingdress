@@ -7,6 +7,10 @@ import { createClient } from '@/lib/supabase';
 declare global {
   interface Window {
     AF?: (command: string, ...args: any[]) => void;
+    ttq?: {
+      track: (event: string, data?: Record<string, any>) => void;
+      identify: (data: Record<string, any>) => void;
+    };
   }
 }
 
@@ -146,20 +150,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setIsLoading(false);
           fetchUserData(session.user.id);
 
-          // Track signup with AppsFlyer
-          console.log('[AppsFlyer] SIGNED_IN event, window.AF:', !!window.AF);
+          // Check if this is a new user (created within the last 60 seconds)
+          const userCreatedAt = new Date(session.user.created_at).getTime();
+          const now = Date.now();
+          const isNewUser = now - userCreatedAt < 60000; // 60 seconds
+
+          // Always identify users with tracking pixels
           if (typeof window !== 'undefined' && window.AF) {
             window.AF('pba', 'setCustomerUserId', session.user.id);
-            window.AF('pba', 'event', {
-              eventType: 'EVENT',
-              eventName: 'af_complete_registration',
-              eventValue: {
-                af_registration_method: session.user.app_metadata?.provider || 'email',
-              },
+          }
+          if (typeof window !== 'undefined' && window.ttq) {
+            window.ttq.identify({
+              external_id: session.user.id,
+              email: session.user.email,
             });
-            console.log('[AppsFlyer] Signup event sent for user:', session.user.id);
+          }
+
+          // Only track registration events for NEW users
+          if (isNewUser) {
+            console.log('[Auth] New user detected, tracking registration events');
+
+            // Track signup with AppsFlyer
+            if (typeof window !== 'undefined' && window.AF) {
+              window.AF('pba', 'event', {
+                eventType: 'EVENT',
+                eventName: 'af_complete_registration',
+                eventValue: {
+                  af_registration_method: session.user.app_metadata?.provider || 'email',
+                },
+              });
+              console.log('[AppsFlyer] Signup event sent for user:', session.user.id);
+            }
+
+            // Track signup with TikTok Pixel
+            if (typeof window !== 'undefined' && window.ttq) {
+              window.ttq.track('CompleteRegistration');
+              console.log('[TikTok Pixel] CompleteRegistration event sent for user:', session.user.id);
+            }
           } else {
-            console.log('[AppsFlyer] window.AF not available at SIGNED_IN');
+            console.log('[Auth] Returning user, skipping registration events');
           }
         } else if (event === 'SIGNED_OUT') {
           setUser(null);
