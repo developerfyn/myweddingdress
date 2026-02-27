@@ -55,8 +55,8 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error(`[${requestId}] Validation error:`, error);
 
-    // Check if it's a Google Cloud credentials error
-    if (error instanceof Error && error.message.includes('credentials')) {
+    // Check if it's a Google API key error
+    if (error instanceof Error && (error.message.includes('API key') || error.message.includes('credentials'))) {
       return NextResponse.json(
         { error: 'Photo validation service not configured' },
         { status: 503 }

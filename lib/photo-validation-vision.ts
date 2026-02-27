@@ -1,5 +1,5 @@
 /**
- * Photo validation using Google Cloud Vision API
+ * Photo validation using Google Gemini 2.0 Flash API
  * Validates photos for virtual try-on suitability:
  * - Full body visible (head to feet)
  * - Standing pose
@@ -19,30 +19,35 @@ export interface PhotoValidationResult {
   };
 }
 
-interface VisionApiResponse {
-  responses: Array<{
-    labelAnnotations?: Array<{ description?: string; score?: number }>;
-    faceAnnotations?: Array<{ boundingPoly?: { vertices?: Array<{ x?: number; y?: number }> } }>;
-    localizedObjectAnnotations?: Array<{
-      name?: string;
-      score?: number;
-      boundingPoly?: {
-        normalizedVertices?: Array<{ x?: number; y?: number }>;
-      };
-    }>;
-    error?: { message?: string };
+interface GeminiResponse {
+  candidates?: Array<{
+    content?: {
+      parts?: Array<{
+        text?: string;
+      }>;
+    };
   }>;
+  error?: {
+    message?: string;
+  };
 }
 
-// Call Vision API with API key
-async function callVisionApi(
-  imageBase64: string,
-  features: Array<{ type: string; maxResults?: number }>
-): Promise<VisionApiResponse> {
-  const apiKey = process.env.GOOGLE_VISION_API_KEY;
+interface ValidationAnalysis {
+  personCount: number;
+  hasFace: boolean;
+  hasFullBody: boolean;
+  isStanding: boolean;
+  confidence: number;
+}
+
+/**
+ * Call Gemini API for image analysis
+ */
+async function analyzeWithGemini(imageBase64: string): Promise<ValidationAnalysis> {
+  const apiKey = process.env.GOOGLE_AI_API_KEY;
 
   if (!apiKey) {
-    throw new Error('Google Vision API key not configured');
+    throw new Error('Google AI API key not configured');
   }
 
   // Remove data URL prefix if present
@@ -50,105 +55,108 @@ async function callVisionApi(
     ? imageBase64.split(',')[1]
     : imageBase64;
 
+  // Extract mime type from data URL or default to jpeg
+  const mimeType = imageBase64.includes('data:')
+    ? imageBase64.split(';')[0].split(':')[1]
+    : 'image/jpeg';
+
+  const prompt = `Analyze this photo for a virtual dress try-on application.
+Respond ONLY with a JSON object (no markdown, no explanation) with these exact fields:
+{
+  "personCount": <number of people in the photo, 0 if none>,
+  "hasFace": <true if a face is clearly visible, false otherwise>,
+  "hasFullBody": <true if full body from head to at least knees is visible, false otherwise>,
+  "isStanding": <true if the person appears to be standing upright, false otherwise>,
+  "confidence": <0.0 to 1.0 confidence in the analysis>
+}`;
+
   const response = await fetch(
-    `https://vision.googleapis.com/v1/images:annotate?key=${apiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        requests: [
+        contents: [
           {
-            image: { content: base64Data },
-            features,
+            parts: [
+              { text: prompt },
+              {
+                inline_data: {
+                  mime_type: mimeType,
+                  data: base64Data,
+                },
+              },
+            ],
           },
         ],
+        generationConfig: {
+          temperature: 0.1,
+          maxOutputTokens: 256,
+        },
       }),
     }
   );
 
   if (!response.ok) {
     const error = await response.text();
-    throw new Error(`Vision API error: ${error}`);
+    console.error('[Gemini] API error:', error);
+    throw new Error(`Gemini API error: ${response.status}`);
   }
 
-  return response.json();
+  const data: GeminiResponse = await response.json();
+
+  if (data.error) {
+    throw new Error(data.error.message || 'Gemini API error');
+  }
+
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+  // Parse JSON from response (handle potential markdown code blocks)
+  let jsonStr = text.trim();
+  if (jsonStr.startsWith('```')) {
+    jsonStr = jsonStr.replace(/```json?\n?/g, '').replace(/```/g, '').trim();
+  }
+
+  try {
+    const analysis = JSON.parse(jsonStr) as ValidationAnalysis;
+    return {
+      personCount: analysis.personCount ?? 0,
+      hasFace: analysis.hasFace ?? false,
+      hasFullBody: analysis.hasFullBody ?? false,
+      isStanding: analysis.isStanding ?? false,
+      confidence: analysis.confidence ?? 0.5,
+    };
+  } catch (parseError) {
+    console.error('[Gemini] Failed to parse response:', text);
+    // Default to allowing the photo if parsing fails
+    return {
+      personCount: 1,
+      hasFace: true,
+      hasFullBody: true,
+      isStanding: true,
+      confidence: 0.5,
+    };
+  }
 }
 
 /**
- * Validate a photo for try-on suitability using Google Vision API
+ * Validate a photo for try-on suitability using Gemini 2.0 Flash
  */
 export async function validatePhotoForTryOn(
   imageBase64: string
 ): Promise<PhotoValidationResult> {
-  // Call Vision API with all needed features in one request
-  const response = await callVisionApi(imageBase64, [
-    { type: 'LABEL_DETECTION', maxResults: 20 },
-    { type: 'FACE_DETECTION', maxResults: 5 },
-    { type: 'OBJECT_LOCALIZATION', maxResults: 10 },
-  ]);
+  const analysis = await analyzeWithGemini(imageBase64);
 
-  const result = response.responses[0];
-
-  if (result.error) {
-    throw new Error(result.error.message || 'Vision API error');
-  }
-
-  const labels = result.labelAnnotations || [];
-  const faces = result.faceAnnotations || [];
-  const objects = result.localizedObjectAnnotations || [];
-
-  // Check for full body indicators
-  const labelDescriptions = labels.map((l) => l.description?.toLowerCase() || '');
-  const hasPersonLabel = labelDescriptions.some((l) =>
-    ['person', 'human', 'woman', 'man', 'people'].includes(l)
-  );
-  const hasStandingIndicators = labelDescriptions.some((l) =>
-    ['standing', 'posing', 'fashion', 'portrait', 'full body'].includes(l)
-  );
-
-  // Count people from object detection
-  const personObjects = objects.filter(
-    (obj) => obj.name?.toLowerCase() === 'person'
-  );
-  const personCount = personObjects.length;
-
-  // Check if person takes up significant portion of image (indicating full body)
-  let hasFullBody = false;
-  let confidence = 0;
-
-  if (personObjects.length === 1) {
-    const person = personObjects[0];
-    const vertices = person.boundingPoly?.normalizedVertices || [];
-
-    if (vertices.length >= 4) {
-      const minY = Math.min(...vertices.map((v) => v.y || 0));
-      const maxY = Math.max(...vertices.map((v) => v.y || 0));
-      const height = maxY - minY;
-
-      // Full body typically spans at least 70% of the image height
-      // and the person should start near the top (head visible)
-      hasFullBody = height >= 0.65 && minY < 0.15;
-      confidence = person.score || 0;
-    }
-  }
-
-  // Check for face
-  const hasFace = faces.length >= 1;
-
-  // Determine if standing (based on labels and full body detection)
-  const isStanding = hasFullBody && (hasStandingIndicators || hasPersonLabel);
-
-  // Validate all criteria
   const details = {
-    hasFullBody,
-    isStanding,
-    personCount,
-    hasFace,
-    confidence,
+    hasFullBody: analysis.hasFullBody,
+    isStanding: analysis.isStanding,
+    personCount: analysis.personCount,
+    hasFace: analysis.hasFace,
+    confidence: analysis.confidence,
   };
 
   // Return specific rejection reasons with helpful tone
-  if (personCount === 0) {
+  if (analysis.personCount === 0) {
     return {
       valid: false,
       reason: 'For best try-on results, please upload a photo of yourself.',
@@ -156,7 +164,7 @@ export async function validatePhotoForTryOn(
     };
   }
 
-  if (personCount > 1) {
+  if (analysis.personCount > 1) {
     return {
       valid: false,
       reason: 'For best try-on results, please upload a photo with just yourself.',
@@ -164,7 +172,7 @@ export async function validatePhotoForTryOn(
     };
   }
 
-  if (!hasFace) {
+  if (!analysis.hasFace) {
     return {
       valid: false,
       reason: 'For best try-on results, please make sure your face is visible.',
@@ -172,7 +180,7 @@ export async function validatePhotoForTryOn(
     };
   }
 
-  if (!hasFullBody) {
+  if (!analysis.hasFullBody) {
     return {
       valid: false,
       reason: 'For best try-on results, please upload a full-body photo (head to feet).',
@@ -180,7 +188,7 @@ export async function validatePhotoForTryOn(
     };
   }
 
-  if (!isStanding) {
+  if (!analysis.isStanding) {
     return {
       valid: false,
       reason: 'For best try-on results, please upload a photo of yourself standing.',
@@ -201,19 +209,14 @@ export async function validatePhotoForTryOn(
 export async function quickValidatePhoto(
   imageBase64: string
 ): Promise<{ hasPerson: boolean; hasFace: boolean }> {
-  const response = await callVisionApi(imageBase64, [
-    { type: 'FACE_DETECTION', maxResults: 5 },
-    { type: 'OBJECT_LOCALIZATION', maxResults: 10 },
-  ]);
-
-  const result = response.responses[0];
-  const faces = result.faceAnnotations || [];
-  const objects = result.localizedObjectAnnotations || [];
-
-  const hasPerson = objects.some(
-    (obj) => obj.name?.toLowerCase() === 'person'
-  );
-  const hasFace = faces.length >= 1;
-
-  return { hasPerson, hasFace };
+  try {
+    const analysis = await analyzeWithGemini(imageBase64);
+    return {
+      hasPerson: analysis.personCount >= 1,
+      hasFace: analysis.hasFace,
+    };
+  } catch {
+    // Default to allowing on error
+    return { hasPerson: true, hasFace: true };
+  }
 }
