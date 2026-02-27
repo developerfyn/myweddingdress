@@ -100,7 +100,7 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
   }
 
   // Get subscription details from Stripe
-  const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+  const subscription = await stripe.subscriptions.retrieve(subscriptionId) as Stripe.Subscription;
   const userId = subscription.metadata.supabase_user_id;
 
   if (!userId) {
@@ -119,8 +119,8 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
       status: 'active',
       credits_balance: QUARTERLY_CREDITS,
       credits_purchased: QUARTERLY_CREDITS,
-      current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-      current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+      current_period_start: new Date((subscription as any).current_period_start * 1000).toISOString(),
+      current_period_end: new Date((subscription as any).current_period_end * 1000).toISOString(),
       updated_at: new Date().toISOString(),
     }, {
       onConflict: 'user_id',
@@ -150,13 +150,14 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
   console.log('[Webhook] Processing invoice.payment_succeeded');
 
   // Only process subscription invoices
-  if (!invoice.subscription) {
+  const invoiceSubscription = (invoice as any).subscription;
+  if (!invoiceSubscription) {
     console.log('[Webhook] Not a subscription invoice, skipping');
     return;
   }
 
-  const subscriptionId = invoice.subscription as string;
-  const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+  const subscriptionId = typeof invoiceSubscription === 'string' ? invoiceSubscription : invoiceSubscription.id;
+  const subscription = await stripe.subscriptions.retrieve(subscriptionId) as Stripe.Subscription;
   const userId = subscription.metadata.supabase_user_id;
 
   if (!userId) {
@@ -187,8 +188,8 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
       .update({
         credits_balance: newBalance,
         credits_purchased: QUARTERLY_CREDITS,
-        current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-        current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+        current_period_start: new Date((subscription as any).current_period_start * 1000).toISOString(),
+        current_period_end: new Date((subscription as any).current_period_end * 1000).toISOString(),
         updated_at: new Date().toISOString(),
       })
       .eq('user_id', userId);
@@ -241,8 +242,8 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
   };
 
   // Only include period_end if it exists
-  if (subscription.current_period_end) {
-    updateData.current_period_end = new Date(subscription.current_period_end * 1000).toISOString();
+  if ((subscription as any).current_period_end) {
+    updateData.current_period_end = new Date((subscription as any).current_period_end * 1000).toISOString();
   }
 
   const { error } = await supabaseAdmin
