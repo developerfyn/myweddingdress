@@ -437,18 +437,12 @@ export function PhotoSelectModal({
           )}
 
           {/* Action Buttons */}
-          <div className="flex gap-3">
-            <button
-              onClick={handleClose}
-              className="flex-1 py-3 px-6 rounded-xl font-medium text-muted-foreground bg-secondary hover:bg-secondary/80 transition-colors"
-            >
-              Cancel
-            </button>
+          <div className="flex flex-col gap-3">
             <button
               onClick={handleConfirm}
               disabled={!selectedPhoto || isUploading}
               className={cn(
-                'flex-1 py-3 px-6 rounded-xl font-medium',
+                'w-full py-3 px-6 rounded-xl font-medium',
                 'bg-gradient-to-r from-[#FF6B9D] to-[#C86DD7] text-white',
                 'flex items-center justify-center gap-2',
                 'transition-opacity',
@@ -457,6 +451,12 @@ export function PhotoSelectModal({
             >
               Try On This Photo
               <span className="text-white/80 text-sm">({CREDIT_COSTS.tryon} credits)</span>
+            </button>
+            <button
+              onClick={handleClose}
+              className="w-full py-3 px-6 rounded-xl font-medium text-muted-foreground bg-secondary hover:bg-secondary/80 transition-colors"
+            >
+              Cancel
             </button>
           </div>
         </div>
