@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useCallback, useMemo, useRef, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { useAuth } from '@/components/auth-provider';
 import { createClient } from '@/lib/supabase';
@@ -26,12 +26,27 @@ import type { Gown } from '@/lib/gowns';
 import { fetchUserPhotosWithSignedUrls, deleteUserPhoto, type UserPhoto } from '@/lib/photo-utils';
 import { Loader2, Menu } from 'lucide-react';
 import { SceneSelector } from '@/components/scene-selector';
+import { useTikTokPixel } from '@/components/tiktok-pixel-provider';
 
 type ViewType = 'browse' | 'favorites' | 'studio' | 'history' | 'settings';
 
 export default function TryOnPage() {
+  return (
+    <Suspense fallback={
+      <div className="h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 animate-spin text-pink-500" />
+      </div>
+    }>
+      <TryOnPageContent />
+    </Suspense>
+  );
+}
+
+function TryOnPageContent() {
   const { user, profile, isSubscribed, isPro, isLoading, signOut } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const { trackPurchase } = useTikTokPixel();
 
   // App State
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -115,6 +130,29 @@ export default function TryOnPage() {
   useEffect(() => {
     effectiveCreditsRef.current = effectiveCredits;
   }, [effectiveCredits]);
+
+  // Track successful checkout with TikTok Pixel
+  useEffect(() => {
+    const checkoutStatus = searchParams.get('checkout');
+    if (checkoutStatus === 'success') {
+      // Fire TikTok CompletePayment event
+      trackPurchase(39.99, 'USD');
+      console.log('[TikTok Pixel] CompletePayment tracked for checkout success');
+
+      // Show success toast
+      toast.success('Welcome to PRO!', {
+        description: 'Your subscription is now active with 400 credits.',
+      });
+
+      // Clean up URL parameter
+      router.replace('/try-on', { scroll: false });
+    } else if (checkoutStatus === 'cancelled') {
+      toast.info('Checkout cancelled', {
+        description: 'You can upgrade anytime from settings.',
+      });
+      router.replace('/try-on', { scroll: false });
+    }
+  }, [searchParams, trackPurchase, router]);
 
   // Register favorite callbacks for the try-on overlay
   useEffect(() => {
