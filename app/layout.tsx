@@ -6,6 +6,7 @@ import { TryOnGenerationProvider } from '@/components/tryon-generation-provider'
 import { VideoGenerationProvider } from '@/components/video-generation-provider'
 import { PostHogProvider } from '@/components/posthog-provider'
 import { AppsFlyerProvider } from '@/components/appsflyer-provider'
+import { TikTokPixelProvider } from '@/components/tiktok-pixel-provider'
 import { Toaster } from '@/components/ui/sonner'
 import './globals.css'
 
@@ -42,7 +43,9 @@ export default function RootLayout({
             <VideoGenerationProvider>
               <PostHogProvider>
                 <AppsFlyerProvider>
-                  {children}
+                  <TikTokPixelProvider>
+                    {children}
+                  </TikTokPixelProvider>
                 </AppsFlyerProvider>
               </PostHogProvider>
             </VideoGenerationProvider>
