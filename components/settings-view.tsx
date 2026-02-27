@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef } from 'react';
 import { ImageIcon, Loader2, Crown, Trash2, Plus, Check } from 'lucide-react';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { createClient } from '@/lib/supabase';
 import { useAuth } from '@/components/auth-provider';
@@ -38,6 +39,7 @@ export function SettingsView({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isValidating, setIsValidating] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
   const validateFile = (file: File): string | null => {
@@ -48,6 +50,44 @@ export function SettingsView({
       return 'File size must be less than 5MB';
     }
     return null;
+  };
+
+  // Convert file to base64
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  // Validate photo with Gemini API
+  const validatePhotoWithAI = async (file: File): Promise<{ valid: boolean; error?: string }> => {
+    try {
+      const base64 = await fileToBase64(file);
+      const response = await fetch('/api/validate-photo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: base64 }),
+      });
+
+      if (!response.ok) {
+        // If validation service is unavailable, allow upload
+        if (response.status === 503) {
+          return { valid: true };
+        }
+        const data = await response.json();
+        return { valid: false, error: data.error || 'Validation failed' };
+      }
+
+      const data = await response.json();
+      return { valid: data.valid, error: data.reason };
+    } catch {
+      // If validation fails due to network error, allow upload
+      console.warn('Photo validation failed, allowing upload');
+      return { valid: true };
+    }
   };
 
   const uploadFiles = async (files: File[]) => {
@@ -66,6 +106,7 @@ export function SettingsView({
     const validFiles: File[] = [];
     const errors: string[] = [];
 
+    // First pass: basic file validation (type, size)
     for (const file of filesToUpload) {
       const error = validateFile(file);
       if (error) {
@@ -81,13 +122,35 @@ export function SettingsView({
 
     if (validFiles.length === 0) return;
 
-    setIsUploading(true);
+    setIsValidating(true);
     if (errors.length === 0) setUploadError(null);
+
+    // Second pass: AI validation for each photo
+    const aiValidatedFiles: File[] = [];
+    for (const file of validFiles) {
+      const result = await validatePhotoWithAI(file);
+      if (result.valid) {
+        aiValidatedFiles.push(file);
+      } else if (result.error) {
+        toast.error('Photo not suitable', {
+          description: result.error,
+          duration: 5000,
+        });
+      }
+    }
+
+    setIsValidating(false);
+
+    if (aiValidatedFiles.length === 0) {
+      return;
+    }
+
+    setIsUploading(true);
 
     const supabase = createClient();
 
-    // Upload all files in parallel
-    const uploadPromises = validFiles.map(async (file, index) => {
+    // Upload all validated files in parallel
+    const uploadPromises = aiValidatedFiles.map(async (file, index) => {
       try {
         const fileExt = file.name.split('.').pop();
         // Use index to ensure unique filenames even if uploads happen at same millisecond
@@ -127,6 +190,9 @@ export function SettingsView({
       await Promise.all(uploadPromises);
       // Notify parent to refetch photos with signed URLs
       onPhotoUploaded();
+      if (aiValidatedFiles.length > 0) {
+        toast.success(`${aiValidatedFiles.length} photo${aiValidatedFiles.length > 1 ? 's' : ''} uploaded`);
+      }
     } catch (err: any) {
       setUploadError(err.message || 'Failed to upload some photos');
     }
@@ -288,12 +354,15 @@ export function SettingsView({
                   </button>
                 </div>
               ))}
-              {isUploading && (
-                <div className="w-20 h-20 rounded-xl border-2 border-dashed border-primary bg-primary/10 flex items-center justify-center">
-                  <Loader2 className="w-6 h-6 text-primary animate-spin" />
+              {(isUploading || isValidating) && (
+                <div className="w-20 h-20 rounded-xl border-2 border-dashed border-primary bg-primary/10 flex flex-col items-center justify-center gap-1">
+                  <Loader2 className="w-5 h-5 text-primary animate-spin" />
+                  <span className="text-[10px] text-primary font-medium">
+                    {isValidating ? 'Checking' : 'Uploading'}
+                  </span>
                 </div>
               )}
-              {!isUploading && userPhotos.length < MAX_PHOTOS && (
+              {!isUploading && !isValidating && userPhotos.length < MAX_PHOTOS && (
                 <button
                   onClick={handleClickUpload}
                   className="w-20 h-20 rounded-xl border-2 border-dashed border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-primary transition-colors"
