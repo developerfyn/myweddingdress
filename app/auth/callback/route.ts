@@ -91,16 +91,16 @@ export async function GET(request: NextRequest) {
     }
   );
 
-  const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+  const { data: sessionData, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
 
-  if (error) {
-    console.error('[Callback] Exchange failed:', error.message);
+  if (exchangeError) {
+    console.error('[Callback] Exchange failed:', exchangeError.message);
     return NextResponse.redirect(
-      new URL(`/auth/error?message=${encodeURIComponent(error.message)}`, request.url)
+      new URL(`/auth/error?message=${encodeURIComponent(exchangeError.message)}`, request.url)
     );
   }
 
-  console.log('[Callback] Exchange SUCCESS — user:', data.session?.user?.email);
+  console.log('[Callback] Exchange SUCCESS — user:', sessionData.session?.user?.email);
 
   return response;
 }
