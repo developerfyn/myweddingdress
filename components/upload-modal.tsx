@@ -2,6 +2,7 @@
 
 import React, { useCallback, useState, useRef } from 'react';
 import { X, Upload, CheckCircle, ImagePlus, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { createClient } from '@/lib/supabase';
 import { useAuth } from '@/components/auth-provider';
@@ -161,9 +162,12 @@ export function UploadModal({ isOpen, onClose, onUpload, existingPhotosCount = 0
         return updated;
       });
 
-      // Show error for invalid photos
+      // Show toast alert for invalid photos
       if (!result.valid && result.error) {
-        setError(result.error);
+        toast.error('Photo not suitable', {
+          description: result.error,
+          duration: 5000,
+        });
       }
     }
 
@@ -404,11 +408,8 @@ export function UploadModal({ isOpen, onClose, onUpload, existingPhotosCount = 0
                     )}
                     {item.validationStatus === 'invalid' && (
                       <div className="absolute inset-0 bg-red-500/20 rounded-xl flex items-center justify-center">
-                        <div className="bg-white rounded-lg px-2 py-1 max-w-[90%] text-center">
-                          <AlertCircle className="w-3 h-3 text-red-500 mx-auto mb-0.5" />
-                          <span className="text-xs text-red-600 line-clamp-2">
-                            {item.validationError || 'Invalid photo'}
-                          </span>
+                        <div className="bg-white rounded-full p-2">
+                          <AlertCircle className="w-5 h-5 text-red-500" />
                         </div>
                       </div>
                     )}

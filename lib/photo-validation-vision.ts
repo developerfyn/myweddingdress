@@ -11,6 +11,7 @@ export interface PhotoValidationResult {
   valid: boolean;
   reason?: string;
   details?: {
+    isRealPhoto: boolean;
     hasFullBody: boolean;
     isStanding: boolean;
     personCount: number;
@@ -33,6 +34,7 @@ interface GeminiResponse {
 }
 
 interface ValidationAnalysis {
+  isRealPhoto: boolean;
   personCount: number;
   hasFace: boolean;
   hasFullBody: boolean;
@@ -60,11 +62,19 @@ async function analyzeWithGemini(imageBase64: string): Promise<ValidationAnalysi
     ? imageBase64.split(';')[0].split(':')[1]
     : 'image/jpeg';
 
-  const prompt = `Analyze this photo for a virtual dress try-on application.
+  const prompt = `Analyze this image for a virtual wedding dress try-on application.
+
+IMPORTANT: This must be a REAL PHOTOGRAPH of a REAL PERSON, not:
+- Screenshots of apps, phones, or computer screens
+- Digital illustrations or artwork
+- Memes, text images, or graphics
+- Photos of photos or screens showing photos
+
 Respond ONLY with a JSON object (no markdown, no explanation) with these exact fields:
 {
-  "personCount": <number of people in the photo, 0 if none>,
-  "hasFace": <true if a face is clearly visible, false otherwise>,
+  "isRealPhoto": <true if this is a real photograph (not a screenshot/graphic/illustration), false otherwise>,
+  "personCount": <number of real people visible in the photo, 0 if none or if it's a screenshot>,
+  "hasFace": <true if a real person's face is clearly visible, false otherwise>,
   "hasFullBody": <true if full body from head to at least knees is visible, false otherwise>,
   "isStanding": <true if the person appears to be standing upright, false otherwise>,
   "confidence": <0.0 to 1.0 confidence in the analysis>
@@ -120,6 +130,7 @@ Respond ONLY with a JSON object (no markdown, no explanation) with these exact f
   try {
     const analysis = JSON.parse(jsonStr) as ValidationAnalysis;
     return {
+      isRealPhoto: analysis.isRealPhoto ?? false,
       personCount: analysis.personCount ?? 0,
       hasFace: analysis.hasFace ?? false,
       hasFullBody: analysis.hasFullBody ?? false,
@@ -128,12 +139,13 @@ Respond ONLY with a JSON object (no markdown, no explanation) with these exact f
     };
   } catch (parseError) {
     console.error('[Gemini] Failed to parse response:', text);
-    // Default to allowing the photo if parsing fails
+    // Default to rejecting the photo if parsing fails (safer)
     return {
-      personCount: 1,
-      hasFace: true,
-      hasFullBody: true,
-      isStanding: true,
+      isRealPhoto: false,
+      personCount: 0,
+      hasFace: false,
+      hasFullBody: false,
+      isStanding: false,
       confidence: 0.5,
     };
   }
@@ -148,6 +160,7 @@ export async function validatePhotoForTryOn(
   const analysis = await analyzeWithGemini(imageBase64);
 
   const details = {
+    isRealPhoto: analysis.isRealPhoto,
     hasFullBody: analysis.hasFullBody,
     isStanding: analysis.isStanding,
     personCount: analysis.personCount,
@@ -156,6 +169,14 @@ export async function validatePhotoForTryOn(
   };
 
   // Return specific rejection reasons with helpful tone
+  if (!analysis.isRealPhoto) {
+    return {
+      valid: false,
+      reason: 'Please upload a real photo of yourself, not a screenshot or graphic.',
+      details,
+    };
+  }
+
   if (analysis.personCount === 0) {
     return {
       valid: false,
