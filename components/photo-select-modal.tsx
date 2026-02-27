@@ -440,7 +440,7 @@ export function PhotoSelectModal({
           <div className="flex gap-3">
             <button
               onClick={handleClose}
-              className="flex-1 py-3 rounded-xl font-medium text-muted-foreground bg-secondary hover:bg-secondary/80 transition-colors"
+              className="flex-1 py-3 px-6 rounded-xl font-medium text-muted-foreground bg-secondary hover:bg-secondary/80 transition-colors"
             >
               Cancel
             </button>
@@ -448,7 +448,7 @@ export function PhotoSelectModal({
               onClick={handleConfirm}
               disabled={!selectedPhoto || isUploading}
               className={cn(
-                'flex-1 py-3 rounded-xl font-medium',
+                'flex-1 py-3 px-6 rounded-xl font-medium',
                 'bg-gradient-to-r from-[#FF6B9D] to-[#C86DD7] text-white',
                 'flex items-center justify-center gap-2',
                 'transition-opacity',
