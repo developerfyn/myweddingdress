@@ -4,15 +4,28 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import Image from 'next/image';
 
 const heroImages = [
-  { src: '/hero-bride.jpg', alt: 'Bride in elegant A-line wedding dress' },
-  { src: '/dresses/aline-1.jpg', alt: 'Bride in classic A-line gown' },
-  { src: '/dresses/aline-2.jpg', alt: 'Bride in romantic A-line dress' },
-  { src: '/dresses/ballgown-1.jpg', alt: 'Bride in stunning ball gown' },
-  { src: '/dresses/mermaid-1.jpg', alt: 'Bride in beautiful mermaid dress' },
-  { src: '/dresses/sheath-1.jpg', alt: 'Bride in elegant sheath dress' },
-  { src: '/dresses/boho-1.jpg', alt: 'Bride in bohemian wedding dress' },
-  { src: '/dresses/tea-1.jpg', alt: 'Bride in charming tea length dress' },
-  { src: '/tryon-result.jpg', alt: 'Bride in designer wedding gown' },
+  { src: '/dresses/hero-bride.jpg', alt: 'Bride in elegant wedding dress' },
+  { src: '/dresses/mermaid-1.jpg', alt: 'Bride in mermaid dress' },
+  { src: '/dresses/tea-1.jpg', alt: 'Bride in tea length dress' },
+  { src: '/dresses/tryon-result.jpg', alt: 'Bride in designer gown' },
+  { src: '/dresses/Bateau + Aline.png', alt: 'Bateau neckline A-line dress' },
+  { src: '/dresses/Mermaid.png', alt: 'Mermaid silhouette dress' },
+  { src: '/dresses/Sheath.png', alt: 'Sheath silhouette dress' },
+  { src: '/dresses/Square Neck + Tea Length.png', alt: 'Square neck tea length dress' },
+  { src: '/dresses/Tea-length.png', alt: 'Tea length dress' },
+  { src: '/dresses/Trumpet.png', alt: 'Trumpet silhouette dress' },
+  { src: '/dresses/tryon-ember-small.png', alt: 'Virtual try-on result' },
+  { src: '/dresses/60fcf578-ac49-47ce-96fb-14a767ac0f0e.png', alt: 'Wedding dress' },
+  { src: '/dresses/90931504-28a7-4a50-9e53-c86c34a8806a.png', alt: 'Wedding dress' },
+  { src: '/dresses/998a7eef-4e99-4451-821b-13200d324d62.png', alt: 'Wedding dress' },
+  { src: '/dresses/b0ece7f6-786b-4e11-8c31-f059c41ab3b5.png', alt: 'Wedding dress' },
+  { src: '/dresses/c0c58b1e-06ea-43d8-bc55-c09a8fd36d44.png', alt: 'Wedding dress' },
+  { src: '/dresses/c69e1af4-37aa-4ae0-9174-00306c539372.png', alt: 'Wedding dress' },
+  { src: '/dresses/e120f372-1235-40d5-adc2-b8a131b6faac.png', alt: 'Wedding dress' },
+  { src: '/dresses/e5d4deba-2909-48d7-b70b-82483f25c7c5.png', alt: 'Wedding dress' },
+  { src: '/dresses/f2172f81-1c4f-423f-83fa-4e3a6717c7f1.png', alt: 'Wedding dress' },
+  { src: '/dresses/f220118f-40df-43e3-95f0-ea1d846e084f.png', alt: 'Wedding dress' },
+  { src: '/dresses/f9e5821a-9406-4d3f-9114-1570054baae1.png', alt: 'Wedding dress' },
 ];
 
 export function HeroCarousel() {
@@ -30,7 +43,7 @@ export function HeroCarousel() {
     if (isHovered || isTouching) return;
 
     const interval = setInterval(() => {
-      setRotation((prev) => prev - 0.3);
+      setRotation((prev) => prev - 0.15);
     }, 30);
 
     return () => clearInterval(interval);
@@ -72,7 +85,7 @@ export function HeroCarousel() {
     >
       {/* 3D Carousel - responsive sizing */}
       <div
-        className="relative w-[140px] h-[210px] sm:w-[170px] sm:h-[255px] md:w-[200px] md:h-[300px]"
+        className="relative w-[100px] h-[150px] sm:w-[120px] sm:h-[180px] md:w-[140px] md:h-[210px]"
         style={{
           transformStyle: 'preserve-3d',
           transform: `rotateY(${rotation}deg)`,
@@ -86,13 +99,13 @@ export function HeroCarousel() {
           return (
             <div
               key={index}
-              className="absolute w-[140px] h-[210px] sm:w-[170px] sm:h-[255px] md:w-[200px] md:h-[300px] rounded-2xl overflow-hidden"
+              className="absolute w-[100px] h-[150px] sm:w-[120px] sm:h-[180px] md:w-[140px] md:h-[210px] rounded-2xl overflow-hidden"
               style={{
-                transform: `rotateY(${angle}deg) translateZ(var(--carousel-radius, 180px))`,
+                transform: `rotateY(${angle}deg) translateZ(var(--carousel-radius, 500px))`,
                 transformStyle: 'preserve-3d',
                 backfaceVisibility: 'hidden',
-                // CSS custom property for responsive radius
-                ['--carousel-radius' as string]: 'clamp(180px, 20vw + 100px, 280px)',
+                // CSS custom property for responsive radius - larger for more images
+                ['--carousel-radius' as string]: 'clamp(350px, 35vw + 150px, 500px)',
               }}
             >
               {/* Glassmorphism card */}
@@ -124,9 +137,9 @@ export function HeroCarousel() {
       </div>
 
       {/* Swipe hint for mobile */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-xs text-muted-foreground sm:hidden">
+      {/* <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-xs text-muted-foreground sm:hidden">
         Swipe to explore
-      </div>
+      </div> */}
     </div>
   );
 }

@@ -24,7 +24,7 @@ import { useCredits } from '@/hooks/use-credits';
 import { CREDIT_COSTS } from '@/lib/usage-tracking';
 import type { Gown } from '@/lib/gowns';
 import { fetchUserPhotosWithSignedUrls, deleteUserPhoto, type UserPhoto } from '@/lib/photo-utils';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Menu } from 'lucide-react';
 import { SceneSelector } from '@/components/scene-selector';
 
 type ViewType = 'browse' | 'favorites' | 'studio' | 'history' | 'settings';
@@ -36,6 +36,7 @@ export default function TryOnPage() {
   // App State
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [currentView, setCurrentView] = useState<ViewType>('browse');
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   // User Data
   const [userPhotos, setUserPhotos] = useState<UserPhoto[]>([]);
@@ -412,7 +413,17 @@ export default function TryOnPage() {
         onShowPaywall={() => setShowPaywallModal(true)}
         credits={effectiveCredits}
         creditsLoading={creditsLoading}
+        isMobileOpen={isMobileSidebarOpen}
+        onMobileClose={() => setIsMobileSidebarOpen(false)}
       />
+
+      {/* Mobile Header */}
+      <button
+        onClick={() => setIsMobileSidebarOpen(true)}
+        className="md:hidden fixed top-4 left-4 z-30 p-2 bg-card border border-border rounded-xl shadow-sm"
+      >
+        <Menu className="w-5 h-5 text-foreground" />
+      </button>
 
       {/* Main Content Area */}
       <main className="flex-1 overflow-hidden">

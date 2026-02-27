@@ -12,6 +12,7 @@ import {
   ChevronRight,
   Clock,
   LogOut,
+  X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -36,6 +37,8 @@ interface SidebarProps {
   onShowPaywall: () => void;
   credits?: UserCredits | null;
   creditsLoading?: boolean;
+  isMobileOpen?: boolean;
+  onMobileClose?: () => void;
 }
 
 const navItems = [
@@ -54,16 +57,37 @@ export function Sidebar({
   onShowPaywall,
   credits,
   creditsLoading = false,
+  isMobileOpen = false,
+  onMobileClose,
 }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
+  const handleNavClick = (view: 'browse' | 'favorites' | 'studio' | 'history' | 'settings') => {
+    onViewChange(view);
+    // Close mobile sidebar when navigating
+    onMobileClose?.();
+  };
+
   return (
-    <aside
-      className={cn(
-        'h-screen bg-card border-r border-border flex flex-col transition-all duration-300',
-        isCollapsed ? 'w-20' : 'w-64'
+    <>
+      {/* Mobile backdrop */}
+      {isMobileOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={onMobileClose}
+        />
       )}
-    >
+
+      <aside
+        className={cn(
+          'h-screen bg-card border-r border-border flex flex-col transition-all duration-300',
+          // Desktop: normal sidebar
+          'hidden md:flex',
+          isCollapsed ? 'w-20' : 'w-64',
+          // Mobile: slide-in drawer
+          isMobileOpen && 'fixed inset-y-0 left-0 z-50 flex w-72'
+        )}
+      >
       {/* Logo */}
       <div className="p-6 border-b border-border flex items-center gap-3">
         <Image
@@ -73,11 +97,20 @@ export function Sidebar({
           height={40}
           className="w-10 h-10 rounded-xl flex-shrink-0"
         />
-        {!isCollapsed && (
-          <div className="overflow-hidden">
+        {(!isCollapsed || isMobileOpen) && (
+          <div className="overflow-hidden flex-1">
             <h1 className="font-serif text-lg text-foreground whitespace-nowrap">My Wedding Dress</h1>
             <p className="text-xs text-muted-foreground">Virtual Try-On</p>
           </div>
+        )}
+        {/* Mobile close button */}
+        {isMobileOpen && (
+          <button
+            onClick={onMobileClose}
+            className="md:hidden p-2 rounded-lg hover:bg-secondary"
+          >
+            <X className="w-5 h-5 text-muted-foreground" />
+          </button>
         )}
       </div>
 
@@ -90,7 +123,7 @@ export function Sidebar({
             return (
               <li key={item.id}>
                 <button
-                  onClick={() => onViewChange(item.id)}
+                  onClick={() => handleNavClick(item.id)}
                   className={cn(
                     'w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200',
                     isActive
@@ -104,10 +137,10 @@ export function Sidebar({
                       isActive && 'text-primary'
                     )}
                   />
-                  {!isCollapsed && (
+                  {(!isCollapsed || isMobileOpen) && (
                     <span className="font-medium">{item.label}</span>
                   )}
-                  {isActive && !isCollapsed && (
+                  {isActive && (!isCollapsed || isMobileOpen) && (
                     <div className="ml-auto w-2 h-2 rounded-full bg-primary" />
                   )}
                 </button>
@@ -118,7 +151,7 @@ export function Sidebar({
       </nav>
 
       {/* Credits Display */}
-      {!isCollapsed && (
+      {(!isCollapsed || isMobileOpen) && (
         <div className="mx-4 mb-4">
           <CreditDisplay
             credits={credits ?? null}
@@ -140,7 +173,7 @@ export function Sidebar({
           >
             <div className="flex items-center gap-3">
               <Crown className="w-5 h-5 text-white flex-shrink-0" />
-              {!isCollapsed && (
+              {(!isCollapsed || isMobileOpen) && (
                 <div className="text-left">
                   <p className="font-semibold text-white text-sm">Upgrade to PRO</p>
                   <p className="text-white/70 text-xs">Unlimited try-ons + videos</p>
@@ -161,7 +194,7 @@ export function Sidebar({
               <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
                 <LogOut className="w-5 h-5 text-muted-foreground" />
               </div>
-              {!isCollapsed && (
+              {(!isCollapsed || isMobileOpen) && (
                 <div className="text-left overflow-hidden">
                   <p className="font-medium text-foreground text-sm">Log Out</p>
                   <p className="text-xs text-muted-foreground">Sign out of your account</p>
@@ -189,10 +222,10 @@ export function Sidebar({
         </AlertDialog>
       </div>
 
-      {/* Collapse Toggle */}
+      {/* Collapse Toggle - desktop only */}
       <button
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className="absolute top-1/2 -right-3 w-6 h-6 bg-card border border-border rounded-full flex items-center justify-center hover:bg-secondary transition-colors"
+        className="hidden md:flex absolute top-1/2 -right-3 w-6 h-6 bg-card border border-border rounded-full items-center justify-center hover:bg-secondary transition-colors"
       >
         {isCollapsed ? (
           <ChevronRight className="w-4 h-4 text-muted-foreground" />
@@ -201,5 +234,6 @@ export function Sidebar({
         )}
       </button>
     </aside>
+    </>
   );
 }

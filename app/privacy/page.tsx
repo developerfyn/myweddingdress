@@ -100,58 +100,21 @@ export default function PrivacyPage() {
           <section className="mb-8">
             <h2 className="font-serif text-2xl font-semibold text-foreground mb-4">4. Third-Party Services</h2>
             <p className="text-foreground/80 leading-relaxed mb-4">
-              We use the following services to operate our platform:
+              We use third-party services for hosting, authentication, payment processing, and analytics.
+              We do not sell, trade, or share your personal data except as necessary to provide our services.
             </p>
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse border border-border text-sm">
-                <thead>
-                  <tr className="bg-muted/50">
-                    <th className="border border-border px-4 py-2 text-left font-semibold">Service</th>
-                    <th className="border border-border px-4 py-2 text-left font-semibold">Purpose</th>
-                    <th className="border border-border px-4 py-2 text-left font-semibold">Data Shared</th>
-                    <th className="border border-border px-4 py-2 text-left font-semibold">Retention</th>
-                  </tr>
-                </thead>
-                <tbody className="text-foreground/80">
-                  <tr>
-                    <td className="border border-border px-4 py-2 font-medium">Supabase</td>
-                    <td className="border border-border px-4 py-2">Authentication, database, storage</td>
-                    <td className="border border-border px-4 py-2">Account data, photos, usage logs</td>
-                    <td className="border border-border px-4 py-2">Until account deletion</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-border px-4 py-2 font-medium">Stripe</td>
-                    <td className="border border-border px-4 py-2">Payment processing</td>
-                    <td className="border border-border px-4 py-2">Email, payment method</td>
-                    <td className="border border-border px-4 py-2">Per Stripe's policy</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-border px-4 py-2 font-medium">FASHN.ai</td>
-                    <td className="border border-border px-4 py-2">AI virtual try-on</td>
-                    <td className="border border-border px-4 py-2">Photos (base64)</td>
-                    <td className="border border-border px-4 py-2">60 minutes</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-border px-4 py-2 font-medium">FAL.ai / Kling</td>
-                    <td className="border border-border px-4 py-2">Video generation</td>
-                    <td className="border border-border px-4 py-2">Try-on images</td>
-                    <td className="border border-border px-4 py-2">24-72 hours</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-border px-4 py-2 font-medium">PostHog</td>
-                    <td className="border border-border px-4 py-2">Analytics</td>
-                    <td className="border border-border px-4 py-2">Anonymous usage data</td>
-                    <td className="border border-border px-4 py-2">Per PostHog policy</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-border px-4 py-2 font-medium">Vercel</td>
-                    <td className="border border-border px-4 py-2">Hosting</td>
-                    <td className="border border-border px-4 py-2">Server logs</td>
-                    <td className="border border-border px-4 py-2">Per Vercel policy</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+
+            <h3 className="font-semibold text-lg text-foreground mt-6 mb-3">Photo Processing (Sensitive Data)</h3>
+            <p className="text-foreground/80 leading-relaxed mb-2">
+              Your photos are processed by AI providers to generate virtual try-ons:
+            </p>
+            <ul className="list-disc pl-6 text-foreground/80 space-y-2">
+              <li><strong>Virtual try-on:</strong> Photos are sent to our AI provider and automatically deleted within 60 minutes of processing</li>
+              <li><strong>Video generation:</strong> Try-on images are sent to our video AI provider and deleted within 24-72 hours</li>
+            </ul>
+            <p className="text-foreground/80 leading-relaxed mt-4">
+              Your photos are never used for AI training and are only processed to deliver the service you requested.
+            </p>
           </section>
 
           <section className="mb-8">

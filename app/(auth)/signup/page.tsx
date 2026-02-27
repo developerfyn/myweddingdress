@@ -210,7 +210,7 @@ export default function SignUpPage() {
             <Button
               type="button"
               variant="outline"
-              className="w-full h-12 rounded-xl text-base gap-3 bg-white hover:bg-gray-50"
+              className="w-full h-12 rounded-xl text-base gap-3 bg-white hover:bg-gray-50 hover:text-foreground"
               onClick={handleGoogleSignIn}
               disabled={isGoogleLoading}
             >

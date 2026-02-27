@@ -176,8 +176,8 @@ export default function LandingPage() {
       <section className="pt-32 pb-20 px-6">
         <div className="max-w-7xl mx-auto">
           {/* Centered Hero Content */}
-          <div className="flex flex-col items-center text-center gap-6 mb-12">
-            <h1 className="font-serif text-5xl md:text-6xl lg:text-7xl font-semibold text-foreground leading-tight text-balance max-w-4xl">
+          <div className="flex flex-col items-center text-center gap-6 mb-4">
+            <h1 className="font-serif text-3xl md:text-5xl lg:text-6xl font-semibold text-foreground leading-tight text-balance max-w-4xl">
               Try 500+ designer wedding dresses
             </h1>
 
@@ -186,6 +186,13 @@ export default function LandingPage() {
               looks on you before visiting the boutique. Save time, reduce
               stress, find the one.
             </p> */}
+
+            <Button size="lg" className="gap-4" asChild>
+              <Link href="/try-on">
+                Start For Free
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </Button>
           </div>
 
           {/* 3D Carousel */}
@@ -193,18 +200,8 @@ export default function LandingPage() {
             <HeroCarousel />
           </div>
 
-          {/* CTA Buttons & Social Proof */}
+          {/* Social Proof */}
           <div className="flex flex-col items-center gap-8 mt-12">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button size="lg" className="gap-2" asChild>
-                <Link href="/try-on">
-                  Start Trying On
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-              </Button>
-            </div>
-
-            {/* Social Proof */}
             <div className="flex items-center gap-6">
               <div className="flex -space-x-2">
                 {[1, 2, 3, 4, 5].map((i) => (
@@ -236,67 +233,79 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Testimonial Quotes */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8 max-w-5xl">
-              {[
-                {
-                  quote: 'I tried on 50 dresses virtually before visiting the boutique. Walked in knowing exactly what I wanted!',
-                  name: 'Sarah Mitchell',
-                },
-                {
-                  quote: 'The AI try-on is shockingly realistic. My mom thought the photos were from a real fitting!',
-                  name: 'Olivia Martinez',
-                },
-                {
-                  quote: 'Found my dream dress in a style I never would have tried in store. This app changed everything.',
-                  name: 'Jessica Laurent',
-                },
-                {
-                  quote: 'The video animation feature is incredible. Seeing the dress move and flow helped me make my final decision.',
-                  name: 'Amanda Chen',
-                },
-                {
-                  quote: 'Saved me so much time! I knew exactly which 3 dresses to try on at the boutique.',
-                  name: 'Rachel Thompson',
-                },
-                {
-                  quote: 'I live in a small town with limited bridal shops. This let me explore hundreds of designer dresses I never would have seen otherwise.',
-                  name: 'Emma Wilson',
-                },
-              ].map((testimonial, index) => (
-                <div
-                  key={index}
-                  className="p-4 rounded-xl bg-white/80 border border-border/50 shadow-sm text-center"
-                >
-                  <p className="text-sm text-foreground leading-relaxed mb-2">
-                    &ldquo;{testimonial.quote}&rdquo;
-                  </p>
-                  <span className="text-xs text-muted-foreground">
-                    — {testimonial.name}
-                  </span>
-                </div>
-              ))}
+            {/* Testimonial Marquee */}
+            <div className="mt-8 w-screen -mx-6 overflow-hidden">
+              {/* Top row - scrolls left */}
+              <div className="flex animate-marquee-left mb-4">
+                {[...Array(2)].map((_, dupeIndex) => (
+                  <div key={dupeIndex} className="flex gap-4 px-2">
+                    {[
+                      { quote: 'I tried on 50 dresses virtually before visiting the boutique. Walked in knowing exactly what I wanted!', name: 'Sarah Mitchell' },
+                      { quote: 'The AI try-on is shockingly realistic. My mom thought the photos were from a real fitting!', name: 'Olivia Martinez' },
+                      { quote: 'Found my dream dress in a style I never would have tried in store. This app changed everything.', name: 'Jessica Laurent' },
+                      { quote: 'The video animation feature is incredible. Seeing the dress move and flow helped me make my final decision.', name: 'Amanda Chen' },
+                    ].map((testimonial, index) => (
+                      <div
+                        key={index}
+                        className="flex-shrink-0 w-[300px] p-4 rounded-xl bg-white/80 border border-border/50 shadow-sm text-center"
+                      >
+                        <p className="text-sm text-foreground leading-relaxed mb-2">
+                          &ldquo;{testimonial.quote}&rdquo;
+                        </p>
+                        <span className="text-xs text-muted-foreground">
+                          — {testimonial.name}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+
+              {/* Bottom row - scrolls right */}
+              <div className="flex animate-marquee-right">
+                {[...Array(2)].map((_, dupeIndex) => (
+                  <div key={dupeIndex} className="flex gap-4 px-2">
+                    {[
+                      { quote: 'Saved me so much time! I knew exactly which 3 dresses to try on at the boutique.', name: 'Rachel Thompson' },
+                      { quote: 'I live in a small town with limited bridal shops. This let me explore hundreds of designer dresses I never would have seen otherwise.', name: 'Emma Wilson' },
+                      { quote: 'My bridesmaids and I had so much fun swiping through dresses together. Made the whole experience more special.', name: 'Lauren Davis' },
+                      { quote: 'The realistic try-on photos helped my long-distance mom feel included in the dress shopping process.', name: 'Michelle Park' },
+                    ].map((testimonial, index) => (
+                      <div
+                        key={index}
+                        className="flex-shrink-0 w-[300px] p-4 rounded-xl bg-white/80 border border-border/50 shadow-sm text-center"
+                      >
+                        <p className="text-sm text-foreground leading-relaxed mb-2">
+                          &ldquo;{testimonial.quote}&rdquo;
+                        </p>
+                        <span className="text-xs text-muted-foreground">
+                          — {testimonial.name}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </section>
 
 
-      {/* Features Section */}
-      <section id="features" className="py-24 px-6">
+      {/* Features Section - commented out
+      <section id="features" className="pt-6 pb-12 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="font-serif text-4xl md:text-5xl font-semibold text-foreground mb-4 text-balance">
               Everything you need to find the one
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Our AI-powered platform makes wedding dress shopping effortless and
+              Wedding dress shopping should be effortless and
               enjoyable.
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Feature 1 */}
             <div className="group p-8 rounded-3xl bg-card border border-border hover:border-primary/30 hover:shadow-lg transition-all">
               <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 group-hover:bg-primary/20 transition-colors">
                 <Camera className="w-7 h-7 text-primary" />
@@ -310,7 +319,6 @@ export default function LandingPage() {
               </p>
             </div>
 
-            {/* Feature 2 */}
             <div className="group p-8 rounded-3xl bg-card border border-border hover:border-primary/30 hover:shadow-lg transition-all">
               <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 group-hover:bg-primary/20 transition-colors">
                 <Video className="w-7 h-7 text-primary" />
@@ -324,7 +332,6 @@ export default function LandingPage() {
               </p>
             </div>
 
-            {/* Feature 3 */}
             <div className="group p-8 rounded-3xl bg-card border border-border hover:border-primary/30 hover:shadow-lg transition-all">
               <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 group-hover:bg-primary/20 transition-colors">
                 <Heart className="w-7 h-7 text-primary" />
@@ -341,9 +348,10 @@ export default function LandingPage() {
 
         </div>
       </section>
+      */}
 
       {/* How It Works */}
-      <section id="how-it-works" className="py-24 px-6 bg-muted/30">
+      <section id="how-it-works" className="pt-8 pb-24 px-6 bg-muted/30">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="font-serif text-4xl md:text-5xl font-semibold text-foreground mb-4 text-balance">
@@ -412,7 +420,7 @@ export default function LandingPage() {
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="py-24 px-6 bg-muted/30">
+      <section id="pricing" className="pt-6 pb-16 px-4 bg-muted/30">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="font-serif text-4xl md:text-5xl font-semibold text-foreground mb-4 text-balance">
@@ -430,7 +438,7 @@ export default function LandingPage() {
                 Free
               </h3>
               <p className="text-muted-foreground mb-6">
-                Try before you commit
+                Try for free
               </p>
               <div className="mb-6">
                 <span className="text-4xl font-semibold text-foreground">$0</span>
@@ -439,8 +447,8 @@ export default function LandingPage() {
               <ul className="space-y-4 mb-8">
                 {[
                   'Browse all 500+ dresses',
-                  '1 try-on per day',
-                  'Unlimited favorites',
+                  'See yourself in 2 wedding dresses per day',
+                  
                 ].map((feature, i) => (
                   <li key={i} className="flex items-center gap-3">
                     <Check className="w-5 h-5 text-primary" />
@@ -462,7 +470,7 @@ export default function LandingPage() {
                 Quarterly
               </h3>
               <p className="text-primary-foreground/80 mb-4">
-                Find your dream dress
+                Find your dream wedding dress
               </p>
               <div className="mb-6">
                 <span className="text-4xl font-semibold">$13.33</span>
@@ -474,10 +482,10 @@ export default function LandingPage() {
 
               <ul className="space-y-3 mb-8">
                 {[
-                  'Up to 200 dress try-ons',
-                  'Up to 50 video animations',
+                  'Up to 200 wedding dress try-ons',
+                  'Up to 50 video animations in backgrounds you choose',
                   'Unused allowance rolls over',
-                  'Unlimited favorites',
+
                 ].map((feature, i) => (
                   <li key={i} className="flex items-center gap-3">
                     <Check className="w-5 h-5" />
@@ -504,12 +512,11 @@ export default function LandingPage() {
             Ready to find your perfect dress?
           </h2>
           <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Join thousands of happy brides who found their dream gown with
-            My Wedding Dress. Start your journey today.
+            Join thousands of happy brides who found their dream gown. Start your journey today.
           </p>
           <Button size="lg" className="gap-2" asChild>
             <Link href="/signup">
-              Start Trying On Now
+              Try For Free Now
               <ArrowRight className="w-4 h-4" />
             </Link>
           </Button>

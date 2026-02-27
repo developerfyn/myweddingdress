@@ -47,7 +47,7 @@ export function GownCard({
           e.stopPropagation();
           onToggleFavorite(gown.id);
         }}
-        className="absolute top-3 right-3 w-9 h-9 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-black/60"
+        className="absolute top-3 right-3 w-9 h-9 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all hover:bg-black/60"
       >
         <Heart
           className={cn(
@@ -89,7 +89,7 @@ export function GownCard({
           className={cn(
             'mt-3 w-full py-2.5 rounded-lg text-sm font-medium flex items-center justify-center gap-2',
             'bg-gradient-to-r from-[#FF6B9D] to-[#C86DD7] text-white',
-            'opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0',
+            'opacity-100 md:opacity-0 md:translate-y-2 md:group-hover:opacity-100 md:group-hover:translate-y-0',
             'transition-all duration-300 hover:opacity-90'
           )}
         >
