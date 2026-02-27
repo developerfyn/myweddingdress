@@ -6,8 +6,8 @@ export async function GET(request: NextRequest) {
   const code = requestUrl.searchParams.get('code');
   const token_hash = requestUrl.searchParams.get('token_hash');
   const type = requestUrl.searchParams.get('type');
-  const error = requestUrl.searchParams.get('error');
-  const error_description = requestUrl.searchParams.get('error_description');
+  const authError = requestUrl.searchParams.get('error');
+  const authErrorDescription = requestUrl.searchParams.get('error_description');
   const rawNext = requestUrl.searchParams.get('next') ?? '/try-on';
   const next = rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : '/try-on';
 
@@ -15,15 +15,15 @@ export async function GET(request: NextRequest) {
   console.log('[Callback] code:', code ? `${code.slice(0, 8)}...` : null);
   console.log('[Callback] token_hash:', token_hash ? `${token_hash.slice(0, 8)}...` : null);
   console.log('[Callback] type:', type);
-  console.log('[Callback] error:', error);
-  console.log('[Callback] error_description:', error_description);
+  console.log('[Callback] error:', authError);
+  console.log('[Callback] error_description:', authErrorDescription);
   console.log('[Callback] Full URL:', requestUrl.toString());
 
   // Handle errors from Supabase
-  if (error) {
-    console.error('[Callback] Supabase returned error:', error, error_description);
+  if (authError) {
+    console.error('[Callback] Supabase returned error:', authError, authErrorDescription);
     return NextResponse.redirect(
-      new URL(`/auth/error?message=${encodeURIComponent(error_description || error)}`, request.url)
+      new URL(`/auth/error?message=${encodeURIComponent(authErrorDescription || authError)}`, request.url)
     );
   }
 
