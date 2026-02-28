@@ -112,7 +112,7 @@ Respond ONLY with JSON (no markdown):
         ],
         generationConfig: {
           temperature: 0.1,
-          maxOutputTokens: 256,
+          maxOutputTokens: 1024,
         },
       }),
     }
