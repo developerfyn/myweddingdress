@@ -64,15 +64,19 @@ async function analyzeWithGemini(imageBase64: string): Promise<ValidationAnalysi
 
   const prompt = `Analyze this image for a virtual wedding dress try-on application.
 
-IMPORTANT: This must be a REAL PHOTOGRAPH of a REAL PERSON, not:
-- Screenshots of apps, phones, or computer screens
-- Digital illustrations or artwork
+IMPORTANT: This must be a photograph of a REAL PERSON. Accept:
+- Personal photos taken by the user
+- Professional photos, model photos, or e-commerce style photos (these are OK!)
+- Photos with studio lighting or plain backgrounds
+
+Reject ONLY:
+- Digital illustrations, drawings, or AI-generated artwork
 - Memes, text images, or graphics
-- Photos of photos or screens showing photos
+- Screenshots showing UI elements like app interfaces or browser chrome
 
 Respond ONLY with a JSON object (no markdown, no explanation) with these exact fields:
 {
-  "isRealPhoto": <true if this is a real photograph (not a screenshot/graphic/illustration), false otherwise>,
+  "isRealPhoto": <true if this shows a real human being (professional/model photos are OK), false only for illustrations/graphics/UI screenshots>,
   "personCount": <number of real people visible in the photo, 0 if none or if it's a screenshot>,
   "hasFace": <true if a real person's face is clearly visible, false otherwise>,
   "hasFullBody": <true if full body from head to at least knees is visible, false otherwise>,
@@ -172,7 +176,7 @@ export async function validatePhotoForTryOn(
   if (!analysis.isRealPhoto) {
     return {
       valid: false,
-      reason: 'Please upload a real photo of yourself, not a screenshot or graphic.',
+      reason: 'Please upload a photo of a real person, not an illustration or graphic.',
       details,
     };
   }
