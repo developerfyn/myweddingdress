@@ -235,7 +235,7 @@ export default function LandingPage() {
               <div className="flex flex-col items-center">
                 <div className="relative w-[240px] h-[340px] md:w-[220px] md:h-[310px] lg:w-[260px] lg:h-[370px] rounded-2xl overflow-hidden border-2 border-dashed border-muted-foreground/30 bg-muted/20">
                   <Image
-                    src="/dresses/hero-bride.jpg"
+                    src="/before-after/before.jpg"
                     alt="Your photo"
                     fill
                     className="object-cover"
@@ -262,7 +262,7 @@ export default function LandingPage() {
               <div className="flex flex-col items-center">
                 <div className="relative w-[240px] h-[340px] md:w-[220px] md:h-[310px] lg:w-[260px] lg:h-[370px] rounded-2xl overflow-hidden border-2 border-primary/30 shadow-lg shadow-primary/20">
                   <Image
-                    src="/dresses/tryon-result.jpg"
+                    src="/before-after/after.png"
                     alt="AI try-on result"
                     fill
                     className="object-cover"
@@ -296,7 +296,7 @@ export default function LandingPage() {
                     preload="metadata"
                     className="w-full h-full object-cover"
                   >
-                    <source src="/assets/home-screen-video.mp4" type="video/mp4" />
+                    <source src="/before-after/tryon-video.mp4" type="video/mp4" />
                   </video>
                   <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
                   <div className="absolute bottom-3 left-0 right-0 text-center">
