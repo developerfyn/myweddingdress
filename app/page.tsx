@@ -163,7 +163,7 @@ export default function LandingPage() {
                       <Link href="/login">Log in</Link>
                     </Button>
                     <Button size="sm" className="flex-1" asChild>
-                      <Link href="/signup">Try Free</Link>
+                      <Link href="/signup">Try for Free</Link>
                     </Button>
                   </>
                 )}
@@ -179,7 +179,7 @@ export default function LandingPage() {
           {/* Centered Hero Content */}
           <div className="flex flex-col items-center text-center gap-6 mb-4">
             <h1 className="font-serif text-3xl md:text-5xl lg:text-6xl font-semibold text-foreground leading-tight text-balance max-w-4xl">
-              Try 500+ wedding dresses without leaving home
+              See Yourself In 100+ Wedding Dresses From Your Couch
             </h1>
 
             {/* <p className="text-lg text-muted-foreground max-w-2xl leading-relaxed">
@@ -194,16 +194,9 @@ export default function LandingPage() {
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </Button>
-          </div>
 
-          {/* 3D Carousel */}
-          <div className="relative">
-            <HeroCarousel />
-          </div>
-
-          {/* Social Proof */}
-          <div className="flex flex-col items-center gap-8 mt-12">
-            <div className="flex items-center gap-6">
+            {/* Social Proof */}
+            <div className="flex items-center gap-6 mt-4">
               <div className="flex -space-x-2">
                 {[1, 2, 3, 4, 5].map((i) => (
                   <Image
@@ -233,29 +226,45 @@ export default function LandingPage() {
                 </p>
               </div>
             </div>
+          </div>
 
-            {/* Testimonial Marquee */}
+          {/* 3D Carousel */}
+          <div className="relative">
+            <HeroCarousel />
+          </div>
+
+          {/* Testimonial Marquee */}
+          <div className="flex flex-col items-center gap-8 mt-12">
             <div className="mt-8 w-screen -mx-6 overflow-hidden">
               {/* Top row - scrolls left */}
               <div className="flex animate-marquee-left mb-4">
                 {[...Array(2)].map((_, dupeIndex) => (
                   <div key={dupeIndex} className="flex gap-4 px-2">
                     {[
-                      { quote: 'I tried on 50 dresses virtually before visiting the boutique. Walked in knowing exactly what I wanted!', name: 'Sarah Mitchell' },
-                      { quote: 'The AI try-on is shockingly realistic. My mom thought the photos were from a real fitting!', name: 'Olivia Martinez' },
-                      { quote: 'Found my dream dress in a style I never would have tried in store. This app changed everything.', name: 'Jessica Laurent' },
-                      { quote: 'The video animation feature is incredible. Seeing the dress move and flow helped me make my final decision.', name: 'Amanda Chen' },
+                      { quote: 'I tried on 50 dresses virtually before visiting the boutique. Walked in knowing exactly what I wanted!', name: 'Sarah Mitchell', avatar: '/assets/testimonials/avatar-1.jpg' },
+                      { quote: 'The AI try-on is shockingly realistic. My mom thought the photos were from a real fitting!', name: 'Olivia Martinez', avatar: '/assets/testimonials/avatar-2.jpg' },
+                      { quote: 'Found my dream dress in a style I never would have tried in store. This app changed everything.', name: 'Jessica Laurent', avatar: '/assets/testimonials/avatar-3.jpg' },
+                      { quote: 'The video animation feature is incredible. Seeing the dress move and flow helped me make my final decision.', name: 'Amanda Chen', avatar: '/assets/testimonials/avatar-4.jpg' },
                     ].map((testimonial, index) => (
                       <div
                         key={index}
-                        className="flex-shrink-0 w-[300px] p-4 rounded-xl bg-white/80 border border-border/50 shadow-sm text-center"
+                        className="flex-shrink-0 w-[300px] p-4 rounded-xl bg-white/80 border border-border/50 shadow-sm"
                       >
-                        <p className="text-sm text-foreground leading-relaxed mb-2">
+                        <p className="text-sm text-foreground leading-relaxed mb-3">
                           &ldquo;{testimonial.quote}&rdquo;
                         </p>
-                        <span className="text-xs text-muted-foreground">
-                          — {testimonial.name}
-                        </span>
+                        <div className="flex items-center gap-2 justify-center">
+                          <Image
+                            src={testimonial.avatar}
+                            alt={testimonial.name}
+                            width={32}
+                            height={32}
+                            className="w-8 h-8 rounded-full object-cover"
+                          />
+                          <span className="text-xs text-muted-foreground">
+                            {testimonial.name}
+                          </span>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -267,21 +276,30 @@ export default function LandingPage() {
                 {[...Array(2)].map((_, dupeIndex) => (
                   <div key={dupeIndex} className="flex gap-4 px-2">
                     {[
-                      { quote: 'Saved me so much time! I knew exactly which 3 dresses to try on at the boutique.', name: 'Rachel Thompson' },
-                      { quote: 'I live in a small town with limited bridal shops. This let me explore hundreds of designer dresses I never would have seen otherwise.', name: 'Emma Wilson' },
-                      { quote: 'My bridesmaids and I had so much fun swiping through dresses together. Made the whole experience more special.', name: 'Lauren Davis' },
-                      { quote: 'The realistic try-on photos helped my long-distance mom feel included in the dress shopping process.', name: 'Michelle Park' },
+                      { quote: 'Saved me so much time! I knew exactly which 3 dresses to try on at the boutique.', name: 'Rachel Thompson', avatar: '/assets/testimonials/avatar-5.jpg' },
+                      { quote: 'I live in a small town with limited bridal shops. This let me explore hundreds of designer dresses I never would have seen otherwise.', name: 'Emma Wilson', avatar: '/assets/testimonials/avatar-6.jpg' },
+                      { quote: 'My bridesmaids and I had so much fun swiping through dresses together. Made the whole experience more special.', name: 'Lauren Davis', avatar: '/assets/testimonials/avatar-7.jpg' },
+                      { quote: 'The realistic try-on photos helped my long-distance mom feel included in the dress shopping process.', name: 'Michelle Park', avatar: '/assets/testimonials/avatar-8.jpg' },
                     ].map((testimonial, index) => (
                       <div
                         key={index}
-                        className="flex-shrink-0 w-[300px] p-4 rounded-xl bg-white/80 border border-border/50 shadow-sm text-center"
+                        className="flex-shrink-0 w-[300px] p-4 rounded-xl bg-white/80 border border-border/50 shadow-sm"
                       >
-                        <p className="text-sm text-foreground leading-relaxed mb-2">
+                        <p className="text-sm text-foreground leading-relaxed mb-3">
                           &ldquo;{testimonial.quote}&rdquo;
                         </p>
-                        <span className="text-xs text-muted-foreground">
-                          — {testimonial.name}
-                        </span>
+                        <div className="flex items-center gap-2 justify-center">
+                          <Image
+                            src={testimonial.avatar}
+                            alt={testimonial.name}
+                            width={32}
+                            height={32}
+                            className="w-8 h-8 rounded-full object-cover"
+                          />
+                          <span className="text-xs text-muted-foreground">
+                            {testimonial.name}
+                          </span>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -415,6 +433,15 @@ export default function LandingPage() {
                   </div>
                 </div>
               ))}
+
+              {/* CTA Button */}
+              <Link
+                href="/signup"
+                className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-8 py-4 rounded-full font-medium hover:bg-primary/90 transition-colors mt-4"
+              >
+                Try For Free Now
+                <ArrowRight className="w-5 h-5" />
+              </Link>
             </div>
           </div>
         </div>
