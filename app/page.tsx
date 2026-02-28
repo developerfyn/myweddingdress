@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { HeroCarousel } from '@/components/hero-carousel';
 import { createClient } from '@/lib/supabase';
 import {
   ArrowRight,
@@ -228,9 +227,87 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* 3D Carousel */}
-          <div className="relative">
-            <HeroCarousel />
+          {/* 3-Step Before/After Progression */}
+          <div className="mt-12 mb-8">
+            {/* Desktop: 3 columns, Mobile: vertical stack */}
+            <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8">
+              {/* Step 1: Upload Photo */}
+              <div className="flex flex-col items-center">
+                <div className="relative w-[200px] h-[280px] md:w-[180px] md:h-[250px] lg:w-[200px] lg:h-[280px] rounded-2xl overflow-hidden border-2 border-dashed border-muted-foreground/30 bg-muted/20">
+                  <Image
+                    src="/dresses/hero-bride.jpg"
+                    alt="Your photo"
+                    fill
+                    className="object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                  <div className="absolute bottom-3 left-0 right-0 text-center">
+                    <span className="text-xs font-medium text-white bg-black/50 px-2 py-1 rounded-full">
+                      Your Photo
+                    </span>
+                  </div>
+                </div>
+                <p className="mt-3 text-sm text-muted-foreground font-medium">1. Upload</p>
+              </div>
+
+              {/* Arrow 1 */}
+              <div className="hidden md:flex items-center text-primary">
+                <ArrowRight className="w-8 h-8" />
+              </div>
+              <div className="md:hidden text-primary">
+                <ArrowRight className="w-6 h-6 rotate-90" />
+              </div>
+
+              {/* Step 2: Try-On Result */}
+              <div className="flex flex-col items-center">
+                <div className="relative w-[200px] h-[280px] md:w-[180px] md:h-[250px] lg:w-[200px] lg:h-[280px] rounded-2xl overflow-hidden border-2 border-primary/30 shadow-lg shadow-primary/20">
+                  <Image
+                    src="/dresses/tryon-result.jpg"
+                    alt="AI try-on result"
+                    fill
+                    className="object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                  <div className="absolute bottom-3 left-0 right-0 text-center">
+                    <span className="text-xs font-medium text-white bg-primary/80 px-2 py-1 rounded-full">
+                      AI Try-On
+                    </span>
+                  </div>
+                </div>
+                <p className="mt-3 text-sm text-muted-foreground font-medium">2. See yourself</p>
+              </div>
+
+              {/* Arrow 2 */}
+              <div className="hidden md:flex items-center text-primary">
+                <ArrowRight className="w-8 h-8" />
+              </div>
+              <div className="md:hidden text-primary">
+                <ArrowRight className="w-6 h-6 rotate-90" />
+              </div>
+
+              {/* Step 3: Video Animation */}
+              <div className="flex flex-col items-center">
+                <div className="relative w-[200px] h-[280px] md:w-[180px] md:h-[250px] lg:w-[200px] lg:h-[280px] rounded-2xl overflow-hidden border-2 border-primary/30 shadow-lg shadow-primary/20">
+                  <video
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    preload="metadata"
+                    className="w-full h-full object-cover"
+                  >
+                    <source src="/assets/home-screen-video.mp4" type="video/mp4" />
+                  </video>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
+                  <div className="absolute bottom-3 left-0 right-0 text-center">
+                    <span className="text-xs font-medium text-white bg-primary/80 px-2 py-1 rounded-full">
+                      ✨ Animated
+                    </span>
+                  </div>
+                </div>
+                <p className="mt-3 text-sm text-muted-foreground font-medium">3. Animate & share</p>
+              </div>
+            </div>
           </div>
 
           {/* Testimonial Marquee */}
