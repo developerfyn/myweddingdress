@@ -66,23 +66,28 @@ async function analyzeWithGemini(imageBase64: string): Promise<ValidationAnalysi
 
 Focus ONLY on the MAIN SUBJECT (the primary person in focus). Ignore people in the background.
 
-Accept:
-- Personal photos, professional photos, model photos, influencer photos
-- Any upright pose: standing, walking, leaning against something
-- Body visible from head to at least mid-thigh (feet don't need to be visible)
+ACCEPT ALL OF THESE:
+- Personal photos, selfies
+- Professional photos, model photos, influencer photos
+- AI-enhanced or edited photos (these are fine!)
+- Heavily filtered or retouched photos
+- Any upright pose: standing, walking, leaning
+- Body visible from head to at least mid-thigh
 
-Reject ONLY:
-- Digital illustrations, drawings, or AI-generated artwork
-- Screenshots with app UI or browser chrome
+REJECT ONLY THESE (be very strict - only reject if OBVIOUSLY one of these):
+- Cartoons, anime, drawings, paintings, sketches
+- 3D renders that look like video game characters
+- Screenshots showing app UI, browser chrome, or phone interfaces
+- Memes with text overlays
 - Sitting or lying down poses
 
-Respond ONLY with a JSON object (no markdown, no explanation):
+Respond ONLY with JSON (no markdown):
 {
-  "isRealPhoto": <true if real photograph of a human, false for illustrations/graphics/UI screenshots>,
-  "personCount": <1 if there is a clear main subject in focus, 0 if no person, 2+ only if multiple people are EQUALLY prominent>,
+  "isRealPhoto": <true for ANY photo of a human-looking person, even if AI-enhanced. false ONLY for obvious cartoons/drawings/3D renders>,
+  "personCount": <1 if there is a clear main subject, 0 if no person, 2+ only if multiple people are EQUALLY prominent>,
   "hasFace": <true if the main subject's face is visible>,
-  "hasFullBody": <true if main subject's body is visible from head to at least mid-thigh>,
-  "isStanding": <true if main subject is upright (standing, walking, or leaning are all OK)>,
+  "hasFullBody": <true if body visible from head to at least mid-thigh>,
+  "isStanding": <true if upright: standing, walking, or leaning>,
   "confidence": <0.0 to 1.0>
 }`;
 
