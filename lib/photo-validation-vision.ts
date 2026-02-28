@@ -64,24 +64,26 @@ async function analyzeWithGemini(imageBase64: string): Promise<ValidationAnalysi
 
   const prompt = `Analyze this image for a virtual wedding dress try-on application.
 
-IMPORTANT: This must be a photograph of a REAL PERSON. Accept:
-- Personal photos taken by the user
-- Professional photos, model photos, or e-commerce style photos (these are OK!)
-- Photos with studio lighting or plain backgrounds
+Focus ONLY on the MAIN SUBJECT (the primary person in focus). Ignore people in the background.
+
+Accept:
+- Personal photos, professional photos, model photos, influencer photos
+- Any upright pose: standing, walking, leaning against something
+- Body visible from head to at least mid-thigh (feet don't need to be visible)
 
 Reject ONLY:
 - Digital illustrations, drawings, or AI-generated artwork
-- Memes, text images, or graphics
-- Screenshots showing UI elements like app interfaces or browser chrome
+- Screenshots with app UI or browser chrome
+- Sitting or lying down poses
 
-Respond ONLY with a JSON object (no markdown, no explanation) with these exact fields:
+Respond ONLY with a JSON object (no markdown, no explanation):
 {
-  "isRealPhoto": <true if this shows a real human being (professional/model photos are OK), false only for illustrations/graphics/UI screenshots>,
-  "personCount": <number of real people visible in the photo, 0 if none or if it's a screenshot>,
-  "hasFace": <true if a real person's face is clearly visible, false otherwise>,
-  "hasFullBody": <true if full body from head to at least knees is visible, false otherwise>,
-  "isStanding": <true if the person appears to be standing upright, false otherwise>,
-  "confidence": <0.0 to 1.0 confidence in the analysis>
+  "isRealPhoto": <true if real photograph of a human, false for illustrations/graphics/UI screenshots>,
+  "personCount": <1 if there is a clear main subject in focus, 0 if no person, 2+ only if multiple people are EQUALLY prominent>,
+  "hasFace": <true if the main subject's face is visible>,
+  "hasFullBody": <true if main subject's body is visible from head to at least mid-thigh>,
+  "isStanding": <true if main subject is upright (standing, walking, or leaning are all OK)>,
+  "confidence": <0.0 to 1.0>
 }`;
 
   const response = await fetch(
@@ -208,7 +210,7 @@ export async function validatePhotoForTryOn(
   if (!analysis.hasFullBody) {
     return {
       valid: false,
-      reason: 'For best try-on results, please upload a full-body photo (head to feet).',
+      reason: 'For best try-on results, please upload a photo showing your body from head to at least mid-thigh.',
       details,
     };
   }
@@ -216,7 +218,7 @@ export async function validatePhotoForTryOn(
   if (!analysis.isStanding) {
     return {
       valid: false,
-      reason: 'For best try-on results, please upload a photo of yourself standing.',
+      reason: 'For best try-on results, please upload a photo where you are standing or walking (not sitting).',
       details,
     };
   }
