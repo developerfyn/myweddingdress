@@ -10,20 +10,7 @@ const heroImages = [
   { src: '/dresses/tryon-result.jpg', alt: 'Bride in designer gown' },
   { src: '/dresses/Mermaid.png', alt: 'Mermaid silhouette dress' },
   { src: '/dresses/Sheath.png', alt: 'Sheath silhouette dress' },
-  { src: '/dresses/Tea-length.png', alt: 'Tea length dress' },
-  { src: '/dresses/Trumpet.png', alt: 'Trumpet silhouette dress' },
   { src: '/dresses/tryon-ember-small.png', alt: 'Virtual try-on result' },
-  { src: '/dresses/60fcf578-ac49-47ce-96fb-14a767ac0f0e.png', alt: 'Wedding dress' },
-  { src: '/dresses/90931504-28a7-4a50-9e53-c86c34a8806a.png', alt: 'Wedding dress' },
-  { src: '/dresses/998a7eef-4e99-4451-821b-13200d324d62.png', alt: 'Wedding dress' },
-  { src: '/dresses/b0ece7f6-786b-4e11-8c31-f059c41ab3b5.png', alt: 'Wedding dress' },
-  { src: '/dresses/c0c58b1e-06ea-43d8-bc55-c09a8fd36d44.png', alt: 'Wedding dress' },
-  { src: '/dresses/c69e1af4-37aa-4ae0-9174-00306c539372.png', alt: 'Wedding dress' },
-  { src: '/dresses/e120f372-1235-40d5-adc2-b8a131b6faac.png', alt: 'Wedding dress' },
-  { src: '/dresses/e5d4deba-2909-48d7-b70b-82483f25c7c5.png', alt: 'Wedding dress' },
-  { src: '/dresses/f2172f81-1c4f-423f-83fa-4e3a6717c7f1.png', alt: 'Wedding dress' },
-  { src: '/dresses/f220118f-40df-43e3-95f0-ea1d846e084f.png', alt: 'Wedding dress' },
-  { src: '/dresses/f9e5821a-9406-4d3f-9114-1570054baae1.png', alt: 'Wedding dress' },
 ];
 
 export function HeroCarousel() {
@@ -115,6 +102,8 @@ export function HeroCarousel() {
                       src={image.src}
                       alt={image.alt}
                       fill
+                      priority={index < 3}
+                      loading={index < 3 ? 'eager' : 'lazy'}
                       sizes="(max-width: 640px) 140px, (max-width: 768px) 170px, 200px"
                       className="object-cover transition-transform duration-500 group-hover:scale-110"
                     />

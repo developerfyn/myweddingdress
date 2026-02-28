@@ -50,6 +50,7 @@ export default function LandingPage() {
               alt="My Wedding Dress"
               width={32}
               height={32}
+              priority
               className="w-8 h-8 rounded-lg"
             />
             <span className="font-serif text-xl font-semibold italic bg-gradient-to-r from-[#FF6B9D] to-[#C86DD7] bg-clip-text text-transparent">
@@ -178,7 +179,7 @@ export default function LandingPage() {
           {/* Centered Hero Content */}
           <div className="flex flex-col items-center text-center gap-6 mb-4">
             <h1 className="font-serif text-3xl md:text-5xl lg:text-6xl font-semibold text-foreground leading-tight text-balance max-w-4xl">
-              Try 500+ designer wedding dresses
+              Try 500+ wedding dresses without leaving home
             </h1>
 
             {/* <p className="text-lg text-muted-foreground max-w-2xl leading-relaxed">
@@ -371,7 +372,7 @@ export default function LandingPage() {
                 loop
                 muted
                 playsInline
-                preload="auto"
+                preload="metadata"
                 className="w-full h-auto"
               >
                 <source src="/assets/home-screen-video.mp4" type="video/mp4" />
