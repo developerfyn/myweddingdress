@@ -59,7 +59,7 @@ export function HeroCarousel() {
 
   return (
     <div
-      className="relative w-full h-[350px] sm:h-[400px] md:h-[500px] flex items-center justify-center"
+      className="relative w-full h-[400px] sm:h-[450px] md:h-[550px] flex items-center justify-center"
       style={{ perspective: '1200px' }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -70,7 +70,7 @@ export function HeroCarousel() {
     >
       {/* 3D Carousel - responsive sizing */}
       <div
-        className="relative w-[100px] h-[150px] sm:w-[120px] sm:h-[180px] md:w-[140px] md:h-[210px]"
+        className="relative w-[150px] h-[225px] sm:w-[180px] sm:h-[270px] md:w-[210px] md:h-[315px]"
         style={{
           transformStyle: 'preserve-3d',
           transform: `rotateY(${rotation}deg)`,
@@ -84,13 +84,13 @@ export function HeroCarousel() {
           return (
             <div
               key={index}
-              className="absolute w-[100px] h-[150px] sm:w-[120px] sm:h-[180px] md:w-[140px] md:h-[210px] rounded-2xl overflow-hidden"
+              className="absolute w-[150px] h-[225px] sm:w-[180px] sm:h-[270px] md:w-[210px] md:h-[315px] rounded-2xl overflow-hidden"
               style={{
                 transform: `rotateY(${angle}deg) translateZ(var(--carousel-radius, 500px))`,
                 transformStyle: 'preserve-3d',
                 backfaceVisibility: 'hidden',
                 // CSS custom property for responsive radius - larger for more images
-                ['--carousel-radius' as string]: 'clamp(160px, 18vw + 60px, 220px)',
+                ['--carousel-radius' as string]: 'clamp(200px, 22vw + 100px, 300px)',
               }}
             >
               {/* Glassmorphism card */}
@@ -104,7 +104,7 @@ export function HeroCarousel() {
                       fill
                       priority={index < 3}
                       loading={index < 3 ? 'eager' : 'lazy'}
-                      sizes="(max-width: 640px) 140px, (max-width: 768px) 170px, 200px"
+                      sizes="(max-width: 640px) 150px, (max-width: 768px) 180px, 210px"
                       className="object-cover transition-transform duration-500 group-hover:scale-110"
                     />
                     {/* Glass overlay */}
