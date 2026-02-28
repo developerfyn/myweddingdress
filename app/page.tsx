@@ -230,10 +230,10 @@ export default function LandingPage() {
           {/* 3-Step Before/After Progression */}
           <div className="mt-12 mb-8">
             {/* Desktop: 3 columns, Mobile: vertical stack */}
-            <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8">
+            <div className="flex flex-col md:flex-row items-center justify-center gap-3 md:gap-4">
               {/* Step 1: Upload Photo */}
               <div className="flex flex-col items-center">
-                <div className="relative w-[200px] h-[280px] md:w-[180px] md:h-[250px] lg:w-[200px] lg:h-[280px] rounded-2xl overflow-hidden border-2 border-dashed border-muted-foreground/30 bg-muted/20">
+                <div className="relative w-[240px] h-[340px] md:w-[220px] md:h-[310px] lg:w-[260px] lg:h-[370px] rounded-2xl overflow-hidden border-2 border-dashed border-muted-foreground/30 bg-muted/20">
                   <Image
                     src="/dresses/hero-bride.jpg"
                     alt="Your photo"
@@ -260,7 +260,7 @@ export default function LandingPage() {
 
               {/* Step 2: Try-On Result */}
               <div className="flex flex-col items-center">
-                <div className="relative w-[200px] h-[280px] md:w-[180px] md:h-[250px] lg:w-[200px] lg:h-[280px] rounded-2xl overflow-hidden border-2 border-primary/30 shadow-lg shadow-primary/20">
+                <div className="relative w-[240px] h-[340px] md:w-[220px] md:h-[310px] lg:w-[260px] lg:h-[370px] rounded-2xl overflow-hidden border-2 border-primary/30 shadow-lg shadow-primary/20">
                   <Image
                     src="/dresses/tryon-result.jpg"
                     alt="AI try-on result"
@@ -287,7 +287,7 @@ export default function LandingPage() {
 
               {/* Step 3: Video Animation */}
               <div className="flex flex-col items-center">
-                <div className="relative w-[200px] h-[280px] md:w-[180px] md:h-[250px] lg:w-[200px] lg:h-[280px] rounded-2xl overflow-hidden border-2 border-primary/30 shadow-lg shadow-primary/20">
+                <div className="relative w-[240px] h-[340px] md:w-[220px] md:h-[310px] lg:w-[260px] lg:h-[370px] rounded-2xl overflow-hidden border-2 border-primary/30 shadow-lg shadow-primary/20">
                   <video
                     autoPlay
                     loop
