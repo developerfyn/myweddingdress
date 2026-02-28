@@ -90,7 +90,7 @@ export function HeroCarousel() {
                 transformStyle: 'preserve-3d',
                 backfaceVisibility: 'hidden',
                 // CSS custom property for responsive radius - larger for more images
-                ['--carousel-radius' as string]: 'clamp(200px, 22vw + 100px, 300px)',
+                ['--carousel-radius' as string]: 'clamp(160px, 16vw + 80px, 240px)',
               }}
             >
               {/* Glassmorphism card */}
